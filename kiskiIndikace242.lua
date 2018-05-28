@@ -8,7 +8,7 @@ delkaVlakuLast = 0
 delkaVlaku = 0
 
 function OnConsistMessage(zprava,argument,smer)
-    if zprava ~= 460995 then --zpráva 460995 nesmí projít skrz
+    	if zprava ~= 460995 then --zpráva 460995 nesmí projít skrz
 		stavPoslane = Call("SendConsistMessage",zprava,argument,smer)
 	end
 	if zprava == 460995 then
@@ -21,34 +21,34 @@ function OnConsistMessage(zprava,argument,smer)
 				predMasinouTornado = true
 			else
 				zaMasinouTornado = true
-            end
-        else --jinak tam není tornádo
+            		end
+        	else --jinak tam není tornádo
 			if smer == 1 then
 				predMasinouTornado = false
 			else
 				zaMasinouTornado = false
-            end
+            		end
 		end
-    end
+    	end
 end
 function Update (casHry)
 	if ToBolAndBack (Call("GetIsNearCamera")) then --jenom, pokud je mašina vidět, jinak není potřeba vykonávat ani AI část skriptu
-        casMinuly = casProcesor
-        casProcesor = os.clock()
-        cas = math.abs(casProcesor - casMinuly)
-        if math.abs(cas - casHry) > 2 then --byla pauzlá hra -> resetuj čítače do nuly, jinak hned zasáhnou všechny ochrany
-            cas = 0
-        end
+		casMinuly = casProcesor
+		casProcesor = os.clock()
+		cas = math.abs(casProcesor - casMinuly)
+		if math.abs(cas - casHry) > 2 then --byla pauzlá hra -> resetuj čítače do nuly, jinak hned zasáhnou všechny ochrany
+		    cas = 0
+		end
 		delkaVlaku = Call("GetConsistLength")
-        if Call("GetIsPlayer") == 1 then --pokud je řízená uživatelem
-            if delkaVlakuLast ~= delkaVlaku then --pokud se změnila délka soupravy -> něco bylo odpojeno/připojeno
-                --dropni proměnné
-                predMasinouTornado = nil
-                zaMasinouTornado = nil
-                predMasinouTornadoCas = nil
-                zaMasinouTornadoCas = nil
+		if Call("GetIsPlayer") == 1 then --pokud je řízená uživatelem
+			if delkaVlakuLast ~= delkaVlaku then --pokud se změnila délka soupravy -> něco bylo odpojeno/připojeno
+				--dropni proměnné
+				predMasinouTornado = nil
+				zaMasinouTornado = nil
+				predMasinouTornadoCas = nil
+				zaMasinouTornadoCas = nil
 
-                x, _, y = Call("*:getNearPosition") --získej pozici mašiny
+				x, _, y = Call("*:getNearPosition") --získej pozici mašiny
 				predMasinou = Call("SendConsistMessage",460995,string.sub(x*10, 1, 5)..string.sub(y*10, 1, 5),0) --pošli žádost o identifikaci dopředu
 				if predMasinou == 0 then --pokud vepředu nic není, rovnou zapiš před mašinou false
 					predMasinouTornado = false
@@ -75,9 +75,9 @@ function Update (casHry)
 					zaMasinouTornado = false
 				end
 			end
-            if predMasinouTornado ~= nil and zaMasinouTornado ~= nil then --pokud víme obě strany, může začít probíhat update
-                --tady je update
-            end
-        end
-    end
+			if predMasinouTornado ~= nil and zaMasinouTornado ~= nil then --pokud víme obě strany, může začít probíhat update
+				--tady je update
+			end
+		end
+    	end
 end
