@@ -1,7 +1,11 @@
+
 predMasinouTornado = nil
 zaMasinouTornado = nil
 predMasinouTornadoCas = nil
+predMasinouTornadoPosledniZpravaCas = 0
 zaMasinouTornadoCas = nil
+zaMasinouTornadoPosledniZpravaCas = 0
+poleKOdeslani = {}
 maxVzdalenost = 25000 --trigger/threshold vzdálenosti středů
 
 delkaVlakuLast = 0
@@ -9,7 +13,13 @@ delkaVlaku = 0
 
 function OnConsistMessage(zprava,argument,smer)
     if zprava ~= 460995 then --zpráva 460995 nesmí projít skrz
-		stavPoslane = Call("SendConsistMessage",zprava,argument,smer)
+		if smer == 1 and zaMasinouTornado then --nebudeme posílat, pokud víme, že tam 460 není
+			stavPoslane = Call("SendConsistMessage",zprava,argument,1)
+		elseif smer == 0 and predMasinouTornado then --to samé ale dozadu
+			stavPoslane = Call("SendConsistMessage",zprava,argument,0)
+        elseif predMasinouTornado == nil or zaMasinouTornado == nil then --pokud je ale nil, tak si zprávu zapamatuj a pošli ji po dokončení kofigurace
+			table.insert(poleKOdeslani, {zprava, argument, smer})
+		end
 	end
 	if zprava == 460995 then
 		local xZS = string.sub(argument, 1, 5)/10
@@ -20,17 +30,21 @@ function OnConsistMessage(zprava,argument,smer)
 			if smer == 1 then
                 predMasinouTornado = true
                 predMasinouTornadoCas = nil
+				predMasinouTornadoPosledniZpravaCas = os.clock() --zapamatuj si čas poslední přijaté zprávy, zprávy chodí od vozů asynchronně, nemůžeme nulovat něco, co ještě nepřišlo
 			else
                 zaMasinouTornado = true
                 zaMasinouTornadoCas = nil
+				zaMasinouTornadoPosledniZpravaCas = os.clock() --viz. 33
             end
         else --jinak tam není tornádo
 			if smer == 1 then
 				predMasinouTornado = false
                 predMasinouTornadoCas = nil
+				predMasinouTornadoPosledniZpravaCas = os.clock() --opět 33
 			else
 				zaMasinouTornado = false
                 zaMasinouTornadoCas = nil
+				zaMasinouTornadoPosledniZpravaCas = os.clock() --a zase viď. 33
             end
 		end
     end
@@ -74,7 +88,12 @@ function Update (casHry)
 				end
 			end
             if predMasinouTornado ~= nil and zaMasinouTornado ~= nil then --pokud víme obě strany, může začít probíhat update
-                --tady je update
+                --tady odešleme co jsme nemohli odeslat, dokud nebyla známá konfigurace
+				for _, v in pairs(poleKOdeslani) do
+					Call("SendConsistMessage", v[1], v[2], v[3])
+				end
+                poleKOdeslani = {} --vymažeme pole
+                --update
             end
         end
     end
