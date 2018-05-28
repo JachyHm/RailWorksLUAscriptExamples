@@ -8,7 +8,7 @@ delkaVlakuLast = 0
 delkaVlaku = 0
 
 function OnConsistMessage(zprava,argument,smer)
-    	if zprava ~= 460995 then --zpráva 460995 nesmí projít skrz
+    if zprava ~= 460995 then --zpráva 460995 nesmí projít skrz
 		stavPoslane = Call("SendConsistMessage",zprava,argument,smer)
 	end
 	if zprava == 460995 then
@@ -18,37 +18,35 @@ function OnConsistMessage(zprava,argument,smer)
 		local vzdalenost = math.sqrt((xZS-x)^2 + (yZS-y)^2)
 		if vzdalenost < maxVzdalenost then --pakliže je vzdálenost menší, než práh, je tam tornádo
 			if smer == 1 then
-				predMasinouTornado = true
+                predMasinouTornado = true
+                predMasinouTornadoCas = nil
 			else
-				zaMasinouTornado = true
-            		end
-        	else --jinak tam není tornádo
+                zaMasinouTornado = true
+                zaMasinouTornadoCas = nil
+            end
+        else --jinak tam není tornádo
 			if smer == 1 then
 				predMasinouTornado = false
+                predMasinouTornadoCas = nil
 			else
 				zaMasinouTornado = false
-            		end
+                zaMasinouTornadoCas = nil
+            end
 		end
-    	end
+    end
 end
 function Update (casHry)
 	if ToBolAndBack (Call("GetIsNearCamera")) then --jenom, pokud je mašina vidět, jinak není potřeba vykonávat ani AI část skriptu
-		casMinuly = casProcesor
-		casProcesor = os.clock()
-		cas = math.abs(casProcesor - casMinuly)
-		if math.abs(cas - casHry) > 2 then --byla pauzlá hra -> resetuj čítače do nuly, jinak hned zasáhnou všechny ochrany
-		    cas = 0
-		end
+        casMinuly = casProcesor
+        casProcesor = os.clock()
+        cas = math.abs(casProcesor - casMinuly)
+        if math.abs(cas - casHry) > 2 then --byla pauzlá hra -> resetuj čítače do nuly, jinak hned zasáhnou všechny ochrany
+            cas = 0
+        end
 		delkaVlaku = Call("GetConsistLength")
-		if Call("GetIsPlayer") == 1 then --pokud je řízená uživatelem
-			if delkaVlakuLast ~= delkaVlaku then --pokud se změnila délka soupravy -> něco bylo odpojeno/připojeno
-				--dropni proměnné
-				predMasinouTornado = nil
-				zaMasinouTornado = nil
-				predMasinouTornadoCas = nil
-				zaMasinouTornadoCas = nil
-
-				x, _, y = Call("*:getNearPosition") --získej pozici mašiny
+        if Call("GetIsPlayer") == 1 then --pokud je řízená uživatelem
+            if delkaVlakuLast ~= delkaVlaku then --pokud se změnila délka soupravy -> něco bylo odpojeno/připojeno
+                x, _, y = Call("*:getNearPosition") --získej pozici mašiny
 				predMasinou = Call("SendConsistMessage",460995,string.sub(x*10, 1, 5)..string.sub(y*10, 1, 5),0) --pošli žádost o identifikaci dopředu
 				if predMasinou == 0 then --pokud vepředu nic není, rovnou zapiš před mašinou false
 					predMasinouTornado = false
@@ -65,19 +63,19 @@ function Update (casHry)
 				Call("SetControlValue","ZaMasinou",0,zaMasinou) --a za
 				delkaVlakuLast = delkaVlaku --aktualizuj zpracovanou délku vlaku
 			end
-			if predMasinouTornadoCas ~= nil and predMasinouTornado == nil then --pokud jsi ještě nic nepřišlo a je zahájený odpočet
+			if predMasinouTornadoCas ~= nil then --pokud jsi ještě nic nepřišlo a je zahájený odpočet
 				if predMasinouTornadoCas + (cas*5) < os.clock() then --pak kontroluj, jestli čas dosáhl cca. 5ti updatů
 					predMasinouTornado = false --a pokud ne, 460 před námi není
 				end
 			end
-			if zaMasinouTornadoCas ~= nil and zaMasinouTornado == nil then --to samé, ale dozadu
+			if zaMasinouTornadoCas ~= nil then --to samé, ale dozadu
 				if zaMasinouTornadoCas + (cas*5) < os.clock() then
 					zaMasinouTornado = false
 				end
 			end
-			if predMasinouTornado ~= nil and zaMasinouTornado ~= nil then --pokud víme obě strany, může začít probíhat update
-				--tady je update
-			end
-		end
-    	end
+            if predMasinouTornado ~= nil and zaMasinouTornado ~= nil then --pokud víme obě strany, může začít probíhat update
+                --tady je update
+            end
+        end
+    end
 end
