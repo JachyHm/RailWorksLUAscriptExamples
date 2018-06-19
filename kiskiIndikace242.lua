@@ -1,3 +1,26 @@
+--ABOUT
+--This object is used to get, if same loco is exactly next to ours. It is used f.e. for showing cable jumpers between locos.
+
+--HOW TO USE
+--Firstly, you should copy locoPosAPI object and paste it to your code.
+--There has to be also functions specified on lines 45 and 46. They must be declared BEFORE this object. Otherwise, it wont work, or it will even break script.
+--This functions are called on second loco response. It can take some time (max 5 updates) to get response, so it can`t be pushed as normal return value.
+--Both of them are returning one value, which can be locoPosAPI.ON_FRONT_CODE, when it is returned from front side, or locoPosAPI.ON_REAR_CODE when it is response from rear side.
+--When ON_FAIL_FUNCTION is called, it means, that no loco was found on specified side, or it was too far. When ON_SUCCESS_FUNCTION is, it means, that loco was found on specified side and it is nearer than max limit.
+--Max limit can be set on line 40, and it is named TRIGGER_DISTANCE. When distance exceeds this value, Fail function is called, otherwise Success fnc is called.
+
+--On lines 41 - 44 (including) you can set message codes. You should choose such ones, that aren`t used anywhere else. I recommend to use syntax like 3 digit class number, and 3 digits msg number. In my case i have class 242, so 242xxx was used.
+
+--OCM function is function, which has to be called on every ConsistMessage. It has arguments message code, message content and message direction.
+--It processes the message, and returns true, if message doesn`t relate to loco position and should be forwarded to next vehicle. Otherwise false is returned and message SHOULDN`T BE forwarded! Otherwise you are risking performance problems.
+
+--Update is method, which should be called every game Update. It has no arguments and it also doesn`t return anything.
+
+--Finally there are two functions: GetIsNearOnFront and GetIsNearOnRear. These should be called only, when we need to know, if there is loco AND ONLY IF THERE WAS CONSIST LENGHT CHANGE!
+--Otherwise you are risking serious problems with performance. It definitelly shouldn` be called every update!
+--They are both returning 1 if there is any vehicle, or 0 if there isn`t even any vehicle.
+--On these functions call, request is processed and then ON_SUCCESS_FUNCTION, or ON_FAIL_FUNCTION respectively are called.
+
 function OnConsistMessage(msg,arg,dir)
     if locoPosAPI:OCM(msg,arg,dir) then
         Call("SendConsistMessage", msg, arg, dir)
