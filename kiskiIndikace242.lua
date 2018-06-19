@@ -1,16 +1,26 @@
+function OnConsistMessage(msg,arg,dir)
+    if locoPosAPI:OCM(msg,arg,dir) then
+        Call("SendConsistMessage", msg, arg, dir)
+    end
+end
+function Update(time)
+    locoPosAPI:Update()
+end
+function Success(dir)
+    --do what you want here
+end
+function Failed(dir)
+    --do what you want here
+end
 locoPosAPI = {
     --settings constants
         TRIGGER_DISTANCE = 12,
-        -- FRONT_OBJECT_NAME = "Marker_FR",
-        -- REAR_OBJECT_NAME = "Marker_BCK",
         Y_COORD_MSG_CODE = 242999,
         X_COORD_MSG_CODE = 242998,
-        -- REAR_Y_COORD_MSG_CODE = 242997,
-        -- REAR_X_COORD_MSG_CODE = 242996,
         SUCCESS_MSG_CODE = 242995,
         FAILED_MSG_CODE = 242994,
-        ON_SUCCESS_FUNCTION = Success(), --function to be called on success
-        ON_FAIL_FUNCTION = Failed(), --function to be called on fail
+        ON_SUCCESS_FUNCTION = Success, --function to be called on success
+        ON_FAIL_FUNCTION = Failed, --function to be called on fail
 
     --internal variables - do not change them ;)
         receivedMsgs = {},
@@ -34,18 +44,6 @@ locoPosAPI = {
                 end
                 self.receivedMsgs[dir+1]["x"] = arg
                 return false
-            -- if msg == self.REAR_Y_COORD_MSG_CODE then --write rear y coord
-            --     if not self.receivedMsgs[dir+1] then
-            --         self.receivedMsgs[dir+1] = {}
-            --     end
-            --     self.receivedMsgs[dir+1]["yr"] = arg
-            --     return false
-            -- elseif msg == self.REAR_X_COORD_MSG_CODE then --write rear x coord
-            --     if not self.receivedMsgs[dir+1] then
-            --         self.receivedMsgs[dir+1] = {}
-            --     end
-            --     self.receivedMsgs[dir+1]["xr"] = arg
-            --     return false
             elseif msg == self.SUCCESS_MSG_CODE then --success; 1 on front, 0 on rear 
                 self.ON_SUCCESS_FUNCTION(dir)
                 if dir == 1 then
@@ -116,11 +114,3 @@ locoPosAPI = {
             return Call("SendConsistMessage", self.X_COORD_MSG_CODE, string.sub(x, 1, 10), 1)
         end
 }
-function OnConsistMessage(msg,arg,dir)
-    if locoPosAPI:OCM(msg,arg,dir) then
-        Call("SendConsistMessage", msg, arg, dir)
-    end
-end
-function Update(time)
-    locoPosAPI:Update()
-end
