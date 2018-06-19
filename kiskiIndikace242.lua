@@ -1,100 +1,126 @@
+locoPosAPI = {
+    --settings constants
+        TRIGGER_DISTANCE = 12,
+        -- FRONT_OBJECT_NAME = "Marker_FR",
+        -- REAR_OBJECT_NAME = "Marker_BCK",
+        Y_COORD_MSG_CODE = 242999,
+        X_COORD_MSG_CODE = 242998,
+        -- REAR_Y_COORD_MSG_CODE = 242997,
+        -- REAR_X_COORD_MSG_CODE = 242996,
+        SUCCESS_MSG_CODE = 242995,
+        FAILED_MSG_CODE = 242994,
+        ON_SUCCESS_FUNCTION = Success(), --function to be called on success
+        ON_FAIL_FUNCTION = Failed(), --function to be called on fail
 
-predMasinouTornado = nil
-zaMasinouTornado = nil
-predMasinouTornadoCas = nil
-predMasinouTornadoPosledniZpravaCas = 0
-zaMasinouTornadoCas = nil
-zaMasinouTornadoPosledniZpravaCas = 0
-poleKOdeslani = {}
-maxVzdalenost = 25000 --trigger/threshold vzdálenosti středů
-
-delkaVlakuLast = 0
-delkaVlaku = 0
-
-function OnConsistMessage(zprava,argument,smer)
-    if zprava ~= 460995 then --zpráva 460995 nesmí projít skrz
-		if smer == 1 and zaMasinouTornado then --nebudeme posílat, pokud víme, že tam 460 není
-			stavPoslane = Call("SendConsistMessage",zprava,argument,1)
-		elseif smer == 0 and predMasinouTornado then --to samé ale dozadu
-			stavPoslane = Call("SendConsistMessage",zprava,argument,0)
-        elseif predMasinouTornado == nil or zaMasinouTornado == nil then --pokud je ale nil, tak si zprávu zapamatuj a pošli ji po dokončení kofigurace
-			table.insert(poleKOdeslani, {zprava, argument, smer})
-		end
-	end
-	if zprava == 460995 then
-		local xZS = string.sub(argument, 1, 5)/10
-		local yZS = string.sub(argument, 6, 10)/10
-		x, _, y = Call("*:getNearPosition") --getNearPosition je z nějakého důvodu volaný na všechny childy a s malým g?! Pokud je volaný jenom na blueprint loco, vrací nil, to samé s "G"
-		local vzdalenost = math.sqrt((xZS-x)^2 + (yZS-y)^2)
-		if vzdalenost < maxVzdalenost then --pakliže je vzdálenost menší, než práh, je tam tornádo
-			if smer == 1 then
-                predMasinouTornado = true
-                predMasinouTornadoCas = nil
-				predMasinouTornadoPosledniZpravaCas = os.clock() --zapamatuj si čas poslední přijaté zprávy, zprávy chodí od vozů asynchronně, nemůžeme nulovat něco, co ještě nepřišlo
-			else
-                zaMasinouTornado = true
-                zaMasinouTornadoCas = nil
-				zaMasinouTornadoPosledniZpravaCas = os.clock() --viz. 33
+    --internal variables - do not change them ;)
+        receivedMsgs = {},
+        ON_FRONT_CODE = 1,
+        ON_REAR_CODE = 2,
+        frontSendTimeStamp = nil,
+        rearSendTimeStamp = nil,
+        lastTime = os.clock(),
+    
+    --methods
+        OCM = function(self, msg, arg, dir) --called on received message; returns true, if message should be forwarded
+            if msg == self.Y_COORD_MSG_CODE then --write y coord
+                if not self.receivedMsgs[dir+1] then
+                    self.receivedMsgs[dir+1] = {}
+                end
+                self.receivedMsgs[dir+1]["y"] = arg
+                return false
+            elseif msg == self.X_COORD_MSG_CODE then --write x coord
+                if not self.receivedMsgs[dir+1] then
+                    self.receivedMsgs[dir+1] = {}
+                end
+                self.receivedMsgs[dir+1]["x"] = arg
+                return false
+            -- if msg == self.REAR_Y_COORD_MSG_CODE then --write rear y coord
+            --     if not self.receivedMsgs[dir+1] then
+            --         self.receivedMsgs[dir+1] = {}
+            --     end
+            --     self.receivedMsgs[dir+1]["yr"] = arg
+            --     return false
+            -- elseif msg == self.REAR_X_COORD_MSG_CODE then --write rear x coord
+            --     if not self.receivedMsgs[dir+1] then
+            --         self.receivedMsgs[dir+1] = {}
+            --     end
+            --     self.receivedMsgs[dir+1]["xr"] = arg
+            --     return false
+            elseif msg == self.SUCCESS_MSG_CODE then --success; 1 on front, 0 on rear 
+                self.ON_SUCCESS_FUNCTION(dir)
+                if dir == 1 then
+                    self.frontSendTimeStamp = nil
+                else
+                    self.rearSendTimeStamp = nil
+                end
+                return false
+            elseif msg == self.FAILED_MSG_CODE then --failed; 1 on front, 0 on rear
+                self.ON_FAIL_FUNCTION(dir)
+                if dir == 1 then
+                    self.frontSendTimeStamp = nil
+                else
+                    self.rearSendTimeStamp = nil
+                end
+                return false
+            else
+                return true
             end
-        else --jinak tam není tornádo
-			if smer == 1 then
-				predMasinouTornado = false
-                predMasinouTornadoCas = nil
-				predMasinouTornadoPosledniZpravaCas = os.clock() --opět 33
-			else
-				zaMasinouTornado = false
-                zaMasinouTornadoCas = nil
-				zaMasinouTornadoPosledniZpravaCas = os.clock() --a zase viď. 33
+        end,
+        Update = function(self) --called every update frame, no args
+            local deltaTime = os.clock() - self.lastTime
+            self.lastTime = os.clock()
+            if table.getn(self.receivedMsgs) > 0 then --are there even any received coords?
+                for i in self.receivedMsgs do --read them
+                    if self.receivedMsgs[i]["x"] ~= nil and self.receivedMsgs[i]["y"] ~= nil then --are they x and y both?
+                        local xFM, yFM = self.receivedMsgs[i]["x"], self.receivedMsgs[i]["y"] --write them to local vars
+                        self.receivedMsgs[i] = nil --clear their table
+                        local x, _, y = Call("*:getNearPosition") --get actual loco pos
+                        local distance = math.sqrt((xFM-x)^2 + (yFM-y)^2) --get vector distance
+                        if distance < self.TRIGGER_DISTANCE then --if there are near
+                            if i == 1 then --if it comes in direction 0, so it comes from direction 1, so loco is on rear
+                                self.ON_SUCCESS_FUNCTION(ON_REAR_CODE)
+                                Call("SendConsistMessage", self.SUCCESS_MSG_CODE, "", 1) --send it back to rear
+                            else --else it comes in direction 1, so it comes from direction 0, so loco is on front
+                                self.ON_SUCCESS_FUNCTION(ON_FRONT_CODE)
+                                Call("SendConsistMessage", self.SUCCESS_MSG_CODE, "", 0) --send it back to front
+                            end
+                        else --no near loco
+                            self.ON_FAIL_FUNCTION()
+                        end
+                    end
+                end
             end
-		end
+            if self.frontSendTimeStamp then --waiting for response from front
+                if self.frontSendTimeStamp + (deltaTime*5) < self.lastTime then --response time exceeds limit (5 times update time)
+                    self.ON_FAIL_FUNCTION(1)
+                    self.frontSendTimeStamp = nil
+                end
+            end
+            if self.rearSendTimeStamp then --waiting for response from rear
+                if sel.frontSendTimeStamp + (deltaTime*5) < self.lastTime then --response time exceeds limit (5 times update time)
+                    self.ON_FAIL_FUNCTION(0)
+                    self.rearSendTimeStamp = nil
+                end
+            end
+        end,
+        GetIsNearOnFront = function(self) --called to check if loco on front is near; no args; returns 1 if there is even any vehicle, 0 if there is nothing
+            local x, _, y = Call("*:getNearPosition")
+            Call("SendConsistMessage", self.Y_COORD_MSG_CODE, string.sub(y, 1, 10), 0)
+            self.frontSendTimeStamp = os.clock()
+            return Call("SendConsistMessage", self.X_COORD_MSG_CODE, string.sub(x, 1, 10), 0)
+        end,
+        GetIsNearOnRear = function(self) --called to check if loco on rear is near; no args; returns 1 if there is even any vehicle, 0 if there is nothing
+            local x, _, y = Call("*:getNearPosition")
+            Call("SendConsistMessage", self.Y_COORD_MSG_CODE, string.sub(y, 1, 10), 1)
+            self.rearSendTimeStamp = os.clock()
+            return Call("SendConsistMessage", self.X_COORD_MSG_CODE, string.sub(x, 1, 10), 1)
+        end
+}
+function OnConsistMessage(msg,arg,dir)
+    if locoPosAPI:OCM(msg,arg,dir) then
+        Call("SendConsistMessage", msg, arg, dir)
     end
 end
-function Update (casHry)
-	if ToBolAndBack (Call("GetIsNearCamera")) then --jenom, pokud je mašina vidět, jinak není potřeba vykonávat ani AI část skriptu
-        casMinuly = casProcesor
-        casProcesor = os.clock()
-        cas = math.abs(casProcesor - casMinuly)
-        if math.abs(cas - casHry) > 2 then --byla pauzlá hra -> resetuj čítače do nuly, jinak hned zasáhnou všechny ochrany
-            cas = 0
-        end
-		delkaVlaku = Call("GetConsistLength")
-        if Call("GetIsPlayer") == 1 then --pokud je řízená uživatelem
-            if delkaVlakuLast ~= delkaVlaku then --pokud se změnila délka soupravy -> něco bylo odpojeno/připojeno
-                x, _, y = Call("*:getNearPosition") --získej pozici mašiny
-				predMasinou = Call("SendConsistMessage",460995,string.sub(x*10, 1, 5)..string.sub(y*10, 1, 5),0) --pošli žádost o identifikaci dopředu
-				if predMasinou == 0 then --pokud vepředu nic není, rovnou zapiš před mašinou false
-					predMasinouTornado = false
-				else --pokud tam něco je, zapiš do predMasinouTornadoCas čas poslání zprávy a zahaj odpočet
-					predMasinouTornadoCas = os.clock()
-				end
-				zaMasinou = Call("SendConsistMessage",460995,string.sub(x*10, 1, 5)..string.sub(y*10, 1, 5),1) --to samé, ale dozadu
-				if zaMasinou == 0 then
-					zaMasinouTornado = false
-				else
-					zaMasinouTornadoCas = os.clock()
-				end
-				Call("SetControlValue","PredMasinou",0,predMasinou) --zapiš jestli je něco před
-				Call("SetControlValue","ZaMasinou",0,zaMasinou) --a za
-				delkaVlakuLast = delkaVlaku --aktualizuj zpracovanou délku vlaku
-			end
-			if predMasinouTornadoCas ~= nil then --pokud jsi ještě nic nepřišlo a je zahájený odpočet
-				if predMasinouTornadoCas + (cas*5) < os.clock() then --pak kontroluj, jestli čas dosáhl cca. 5ti updatů
-					predMasinouTornado = false --a pokud ne, 460 před námi není
-				end
-			end
-			if zaMasinouTornadoCas ~= nil then --to samé, ale dozadu
-				if zaMasinouTornadoCas + (cas*5) < os.clock() then
-					zaMasinouTornado = false
-				end
-			end
-            if predMasinouTornado ~= nil and zaMasinouTornado ~= nil then --pokud víme obě strany, může začít probíhat update
-                --tady odešleme co jsme nemohli odeslat, dokud nebyla známá konfigurace
-				for _, v in pairs(poleKOdeslani) do
-					Call("SendConsistMessage", v[1], v[2], v[3])
-				end
-                poleKOdeslani = {} --vymažeme pole
-                --update
-            end
-        end
-    end
+function Update(time)
+    locoPosAPI:Update()
 end
