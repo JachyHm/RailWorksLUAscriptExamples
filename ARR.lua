@@ -220,7 +220,26 @@ function Update(deltaUpdateTimeFromGame)
 	if math.abs(deltaTime-deltaUpdateTimeFromGame) > 1 then
 		deltaTime = deltaUpdateTimeFromGame
 	end
-  Call("SetControlValue","PomernyTah",0,ARR:mainStack(rucEDB, deltaUpdateTimeFromGame))
+	
+  	Call("SetControlValue","PomernyTah",0,ARR:mainStack(rucEDB, deltaUpdateTimeFromGame))
+	
+	KPJ:update(deltaUpdateTimeFromGame,deltaTime)
+
+	if KPJ:getIsActive() then
+		local metry = math.ceil(KPJ:getRemainingMeters())
+		if metry > 999 then
+			metry = 999
+		end
+		metry = tostring(metry)
+		while string.len(metry) < 3 do
+			metry = "X"..metry
+		end
+		Call("OdpocetMetryP:SetText", metry, 0)
+		Call("OdpocetMetryZ:SetText", metry, 0)
+	else 
+		Call("OdpocetMetryP:SetText", "XXX", 0)
+		Call("OdpocetMetryZ:SetText", "XXX", 0)
+	end
 end
 function OnControlValueChange ( name, index, value )
 	if Call( "*:ControlExists", name, index ) then
