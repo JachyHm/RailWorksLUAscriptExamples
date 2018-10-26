@@ -25,6 +25,7 @@ PZB90 = { --objekt PZB
 			MIDDLE_500HZ_RESTRICTED_SPEED = 25,
 			HIGH_500HZ_RESTRICTED_SPEED = 25,
 	---------------PZB VARIABLES---------------
+		on = false,
 		active = false,
 		trainType = 2,
 		maxTrainSpeed = 125,
@@ -83,17 +84,17 @@ PZB90 = { --objekt PZB
 				PZB90.countdown1000HzLight = 700
 				PZB90.countdown1000HzMonitoring = 1250
 				if PZB90.trainType == PZB90.LOW then
-					PZB90.slowdown1000HzCountdown = 0
+					PZB90.slowdown1000HzCountdown = 38
 					if PZB90.trainSpeed < PZB90.LOW_1000HZ_RESTRICTED_SPEED then
 						PZB90.restricted1000Hz = true
 					end
 				elseif PZB90.trainType == PZB90.MIDDLE then
-					PZB90.slowdown1000HzCountdown = 0
+					PZB90.slowdown1000HzCountdown = 29
 					if PZB90.trainSpeed < PZB90.MIDDLE_1000HZ_RESTRICTED_SPEED then
 						PZB90.restricted1000Hz = true
 					end
 				elseif PZB90.trainType == PZB90.HIGH then
-					PZB90.slowdown1000HzCountdown = 0
+					PZB90.slowdown1000HzCountdown = 23
 					if PZB90.trainSpeed < PZB90.HIGH_1000HZ_RESTRICTED_SPEED then
 						PZB90.restricted1000Hz = true
 					end
@@ -104,14 +105,14 @@ PZB90 = { --objekt PZB
 			-- SysCall("ScenarioManager:ShowAlertMessageExt", "PZB90", "Passed 2000Hz magnet!", 2, 0)
 			if (not PZB90.befehlLever or PZB90.trainSpeed > 40) and PZB90.active then
 				PZB90.emergencyBrake = true
+				PZB90.emergencyBrakeReason = 2000
+				Call("SetControlValue", "VykonPredTrCh", 0, -1)
+				PomernyTah = -1
+				Call("SetControlValue", "PomernyTah", 0, -1)
 			end
 		end,
 		WachsamPressed = function(self)
 			PZB90.acknowledgeCountdown = -1
-			if PZB90.trainSpeed < 1 then
-				PZB90.emergencyBrake = false
-				PZB90.emergencyBrakeReason = 0
-			end
 		end,
 		FreiPressed = function(self)
 			if PZB90.countdown1000HzMonitoring > 0 and not PZB90.light1000Hz then
@@ -120,6 +121,14 @@ PZB90 = { --objekt PZB
 			elseif PZB90.countdown500HzMonitoring > 0 and not PZB90.light500Hz then
 				PZB90.countdown500HzMonitoring = 0
 				PZB90.slowdown500HzCountdown = -1
+			end
+			if PZB90.trainSpeed < 1 then
+				if PZB90.emergencyBrake then
+					PZB90.countdown500HzMonitoring = 700
+					PZB90.slowdown500HzCountdown = 0
+				end
+				PZB90.emergencyBrake = false
+				PZB90.emergencyBrakeReason = 0
 			end
 		end,
 		SetBefehlLever = function(self, bool)
@@ -134,19 +143,64 @@ PZB90 = { --objekt PZB
 				PZB90.trainType = PZB90.HIGH
 			end
 		end,
+		SetPZBOn = function(self)
+			if not PZB90.on then
+				PZB90.on = true
+				PZB90.emergencyBrake = true
+				Call("SetControlValue", "VykonPredTrCh", 0, -1)
+				PomernyTah = -1
+				Call("SetControlValue", "PomernyTah", 0, -1)
+				PZB90.countdown500HzMonitoring = 700
+				PZB90.slowdown500HzCountdown = 0
+			end
+		end,
+		SetPZBOff = function(self)
+			PZB90.on = false
+			PZB90.emergencyBrake = false
+		end,
 		Update = function(self,deltaTime,deltaUpdateTimeFromGame)
-			if (narodniVolba == 5 or narodniVolba == 6) and not LZB.active then
+			if PZB90.on and not LZB.active then
 				PZB90.active = true
 			else
 				PZB90.active = false
 			end
+			PZB90.trainSpeed = math.abs(Call("GetSpeed") * 3.6)
+			local reverser = Call("GetControlValue", "Reverser", 0)
+			if rizeniCab1 > 0.5 and rizeniCab2 < 0.5 then
+				if (reverser > 0.5 and Call("GetSpeed") < -0.1) or (reverser < -0.5 and Call("GetSpeed") > 0.1) or (reverser < 0.5 and reverser > -0.5) then
+					PZB90.active = false
+					if PZB90.trainSpeed > 0.1 then
+						PZB90.emergencyBrake = true
+						Call("SetControlValue", "VykonPredTrCh", 0, -1)
+						PomernyTah = -1
+						Call("SetControlValue", "PomernyTah", 0, -1)
+					end
+				end
+			elseif rizeniCab1 < 0.5 and rizeniCab2 > 0.5 then
+				if (reverser > 0.5 and Call("GetSpeed") > 0.1) or (reverser < -0.5 and Call("GetSpeed") < -0.1) or (reverser < 0.5 and reverser > -0.5) then
+					PZB90.active = false
+					if PZB90.trainSpeed > 0.1 then
+						PZB90.emergencyBrake = true
+						Call("SetControlValue", "VykonPredTrCh", 0, -1)
+						PomernyTah = -1
+						Call("SetControlValue", "PomernyTah", 0, -1)
+					end
+				end
+			else
+				PZB90.active = false
+				if PZB90.trainSpeed > 0.1 then
+					PZB90.emergencyBrake = true
+					Call("SetControlValue", "VykonPredTrCh", 0, -1)
+					PomernyTah = -1
+					Call("SetControlValue", "PomernyTah", 0, -1)
+				end
+			end
 			if PZB90.active then
-				PZB90.trainSpeed = math.abs(Call("GetSpeed") * 3.6)
+				local deltaMeters = Call("GetSpeed") * deltaUpdateTimeFromGame
 				-----------------COUNTDOWNS-----------------
-					local deltaMeters = Call("GetSpeed") * deltaUpdateTimeFromGame
 					if PZB90.countdown1000HzLight > 0 then
 						PZB90.countdown1000HzLight = PZB90.countdown1000HzLight - deltaMeters
-						if not PZB90.emergencyBrake then
+						if not PZB90.emergencyBrake and PZB90.acknowledgeCountdown == -1 then
 							PZB90.light1000Hz = true
 						end
 					else
@@ -328,7 +382,7 @@ PZB90 = { --objekt PZB
 					end
 					if PZB90.blinkCounter > 0.5 then
 						PZB90.blinkCounter = 0
-						if PZB90.trainType == PZB90.LOW and ((PZB90.countdown1000HzMonitoring > 0 and not PZB90.restricted1000Hz) or (PZB90.countdown500HzMonitoring > 0 and not PZB90.restricted500Hz)) then
+						if PZB90.trainType == PZB90.LOW and ((PZB90.countdown1000HzMonitoring > 0 and not PZB90.restricted1000Hz) or (PZB90.countdown500HzMonitoring > 0 and not PZB90.restricted500Hz)) and PZB90.acknowledgeCountdown == -1 then
 							PZB90.light55 = PZB90.light55Inv
 							PZB90.light55Inv = (not PZB90.light55Inv)
 							PZB90.light70 = false
@@ -336,7 +390,7 @@ PZB90 = { --objekt PZB
 							PZB90.light85 = false
 							PZB90.light85Inv = false
 						end
-						if PZB90.trainType == PZB90.MIDDLE and ((PZB90.countdown1000HzMonitoring > 0 and not PZB90.restricted1000Hz) or (PZB90.countdown500HzMonitoring > 0 and not PZB90.restricted500Hz)) then
+						if PZB90.trainType == PZB90.MIDDLE and ((PZB90.countdown1000HzMonitoring > 0 and not PZB90.restricted1000Hz) or (PZB90.countdown500HzMonitoring > 0 and not PZB90.restricted500Hz)) and PZB90.acknowledgeCountdown == -1 then
 							PZB90.light55 = false
 							PZB90.light55Inv = false
 							PZB90.light70 = PZB90.light70Inv
@@ -344,7 +398,7 @@ PZB90 = { --objekt PZB
 							PZB90.light85 = false
 							PZB90.light85Inv = false
 						end
-						if PZB90.trainType == PZB90.HIGH and ((PZB90.countdown1000HzMonitoring > 0 and not PZB90.restricted1000Hz) or (PZB90.countdown500HzMonitoring > 0 and not PZB90.restricted500Hz)) then
+						if PZB90.trainType == PZB90.HIGH and ((PZB90.countdown1000HzMonitoring > 0 and not PZB90.restricted1000Hz) or (PZB90.countdown500HzMonitoring > 0 and not PZB90.restricted500Hz)) and PZB90.acknowledgeCountdown == -1 then
 							PZB90.light55 = false
 							PZB90.light55Inv = false
 							PZB90.light70 = false
@@ -424,8 +478,7 @@ PZB90 = { --objekt PZB
 				end
 
 				if PZB90.emergencyBrake then
-					Call("SetControlValue", "ThrottleAndBrake", 0, -1)
-					Call("SetControlValue", "TrainBrakeControl", 0, 1)
+					Call("SetControlValue", "VykonPredTrCh", 0, -1)
 					PomernyTah = -1
 					Call("SetControlValue", "PomernyTah", 0, -1)
 				end
@@ -438,8 +491,9 @@ PZB90 = { --objekt PZB
 				PZB90.countdown1000HzMonitoring = 0
 				PZB90.countdown500HzLight = 0
 				PZB90.countdown500HzMonitoring = 0
-
-				Call("SetControlValue", "PZB_ACTIVE", 0, 0)
+				if not LZB.active then
+					Call("SetControlValue", "PZB_ACTIVE", 0, 0)
+				end
 				Call("SetControlValue", "PZB_BEFEHL", 0, 0)
 				Call("SetControlValue", "PZB500HZ", 0, 0)
 				Call("SetControlValue", "PZB1000HZ", 0, 0)
@@ -447,29 +501,10 @@ PZB90 = { --objekt PZB
 				Call("SetControlValue", "PZB70", 0, 0)
 				Call("SetControlValue", "PZB85", 0, 0)
 			end
+			if PZB90.emergencyBrake then
+				Call("SetControlValue", "PZB_EMERGENCY", 0, 1)
+			else
+				Call("SetControlValue", "PZB_EMERGENCY", 0, 0)
+			end
 		end
 }
-function Update(deltaUpdateTimeFromGame)
-	deltaTime = math.abs(os.clock() - casMinuly)
-	casMinuly = os.clock()
-	if math.abs(deltaTime-deltaUpdateTimeFromGame) > 1 then
-		deltaTime = deltaUpdateTimeFromGame
-	end
-  
-	--------------PZB90-----------------
-		PZB90:Update(deltaTime,deltaUpdateTimeFromGame)
-		if Call("GetControlValue", "Wachsam", 0) > 0.5 then
-			PZB90:WachsamPressed()
-		end
-		if Call("GetControlValue", "Frei", 0) > 0.5 then
-			PZB90:FreiPressed()
-		end
-		if Call("GetControlValue", "Befehl40", 0) > 0.5 then
-			PZB90:SetBefehlLever(true)
-		else
-			PZB90:SetBefehlLever(false)
-		end
-end
-function OnCustomSignalMessage ( Parameter )
-  PZB90:OnReceivedSignalMessage(Parameter)
-end
