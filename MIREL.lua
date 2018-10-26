@@ -177,8 +177,9 @@ MIREL = { --objekt MIRELu
 		minusControlValueName = "NO12",
 		plusControlValueName = "NO13",
 		enterControlValueName = "NO14",
-		batteryControlValueName = "Klic",
+		batteryVariableName = "gBaterie",
 		isActiveCabControlValueName = "Rizeni",
+		isAnywhereActiveCabVariableName = "gRizeni",
 		hasMaxPermissiveSpeedNeedle = true,
 		maxPermissiveSpeedNeedleControlValueName = "Displej_MIRELrucicka",
 		cabNumberControlValueName = "CisloKab",
@@ -187,7 +188,7 @@ MIREL = { --objekt MIRELu
 		fullCharacter = "C",
 		narodniVolba = 1,
 		afterInitSpeed = 100,
-		DEBUG = true,
+		DEBUG = false,
 
 	--KONSTANTY potrebne pro MIREL
 		cesko = 1,
@@ -220,7 +221,7 @@ MIREL = { --objekt MIRELu
 		zobrazenaRychlost = 0,
 		rychlostRezimu = 0,
 		nejblizsiNavestidlo = -1,
-		blokBrzdyVZ = true,
+		odpadleSoupatkoVZ = true,
 		D1_blokujPrenos = false,
 		D1_zacatekBloku = nil,
 		blokujPrenosNavesti = false,
@@ -247,6 +248,7 @@ MIREL = { --objekt MIRELu
 		kodovaneMezikruzi = false,
 		mezikruziZvyseni = 0,
 		kod = 0,
+		kodOld = 0,
 		casBdelost = 0,
 		bdelostInterval = 24,
 		blokujBdelostVyzva = false,
@@ -335,8 +337,8 @@ MIREL = { --objekt MIRELu
 		--METODY:
 			UlozRezim = function(self,NOrezim)
 				f = assert(io.open("Assets/CS_addon/Kal000px/RailVehicles/Electric/Common/380 Script/NO.rez", "w"))
-				Print("Zapisuji do souboru NO.rez, výsledek operace: ")
-				Print(f:write(NOrezim))
+				-- Print("Zapisuji do souboru NO.rez, výsledek operace: ")
+				-- Print(f:write(NOrezim))
 				f:close()
 				MIREL.NO.rezimOld = NOrezim
 			end,
@@ -350,7 +352,7 @@ MIREL = { --objekt MIRELu
 		end,
 
 		NastavMIREL = function(self)
-			Print("MIREL init promenych OK!")
+			-- Print("MIREL init promenych OK!")
 			MIREL.NO.DISPLEJ.stav = 0
 			MIREL.NO.DISPLEJ.blikej = false
 			MIREL.NO.DISPLEJ.blikejRychle = false
@@ -359,10 +361,11 @@ MIREL = { --objekt MIRELu
 			MIREL.NO.NO11 = MIREL.NO.dreimalEmptyChar
 			MIREL.NO.NO11old = MIREL.NO.dreimalEmptyChar
 			MIREL.NO.zopakujPriUlozeni = MIREL.NO.dreimalEmptyChar
-			f = assert(io.open("Assets/CS_addon/Kal000px/RailVehicles/Electric/Common/380 Script/NO.rez", "r"))
-			MIREL.NO.rezim = f:read("*all")
-			Print("Precteny rezim je: "..MIREL.NO.rezim)
-			f:close()
+			-- f = assert(io.open("Assets/CS_addon/Kal000px/RailVehicles/Electric/Common/380 Script/NO.rez", "r"))
+			-- MIREL.NO.rezim = f:read("*all")
+			-- Print("Precteny rezim je: "..MIREL.NO.rezim)
+			-- f:close()
+			MIREL.NO.rezim = "POS"
 			MIREL.zamekRychlostiVal = MIREL.maxDesignSpeed
 			MIREL.vychoziRychlost = MIREL.rychlostPodleNavesti
 			MIREL.CZSK = MIREL:PoleFCE {"POS","PRE","VYL","ZAV"}
@@ -437,15 +440,13 @@ MIREL = { --objekt MIRELu
 					MIREL.NO.casRychloposuv = 1
 				end
 				if MIREL.NO.rychloposuv then --pokud je rychloposuv, spousti co 0.3 sec Fci prislusneho tlacitka
-					if MIREL.NO.casRychloposuv > 0.3 then
+					if MIREL.NO.casRychloposuv > 1 then
 						if MIREL.NO.NO12 then
 							MIREL:Minus()
 						else
 							MIREL:Plus()
 						end
 						MIREL.NO.casRychloposuv = 0
-					else
-						MIREL.NO.rychloposuv = false
 					end
 				else --jinak anuluje cas
 					MIREL.NO.casRychloposuv = 0
@@ -455,21 +456,21 @@ MIREL = { --objekt MIRELu
 			MIREL.krivkaDrahaUjeta = MIREL.krivkaDrahaUjeta + math.abs(MIREL.rychlostKMH/3.6) * deltaUpdateTimeFromGame
 
 			if MIREL.rychlostKMH <= MIREL.rychlostPodleNavesti + MIREL.mezikruziZvyseni and MIREL.manual then
-				Print("Rusim MANUAL protoze rychlost je nizsi, nez cilova")
+				-- Print("Rusim MANUAL protoze rychlost je nizsi, nez cilova")
 				MIREL.manual = false
 			end
 
-			if MIREL.modelujKrivku then 
+			if MIREL.modelujKrivku then
+				if Call("GetControlValue", "Wheelslip", 0) ~= 1 then
+					MIREL:Manual()
+				end
 				if MIREL.krivkaDrahaUjeta > MIREL.krivkaDelkaDrahaPred then --zacina snizovat rychlost dle krivky
 					MIREL.nulovaTolerancia = true
 					if MIREL.budeOpakovanaBdelostnaVyzva then
 						MIREL:JednorazovaBdelostnaVyzva(true)
 					end
-					if MIREL.kod ~= 0 and MIREL.kod ~= 1 then --krivka do nuly
+					if not MIREL.modelujKrivkuDo120 then --krivka do nuly
 						MIREL.rychlostKrivkyAbs = MIREL.vychoziRychlost - ((MIREL.krivkaDrahaUjeta-MIREL.krivkaDelkaDrahaPred)/MIREL.krivkaDelkaDraha) * MIREL.vychoziRychlost
-						if MIREL.rychlostKMH < 40 then
-							MIREL:UkonciModelovaniKrivky()
-						end
 					else --krivka pro 120
 						MIREL.rychlostKrivkyAbs = MIREL.vychoziRychlost - ((MIREL.krivkaDrahaUjeta-MIREL.krivkaDelkaDrahaPred)/MIREL.krivkaDelkaDraha) * math.max(MIREL.vychoziRychlost-120,0)
 					end
@@ -481,9 +482,24 @@ MIREL = { --objekt MIRELu
 				MIREL:UkonciModelovaniKrivky()
 			end
 
-			Call("SetControlValue","Displej_MIRELrucicka",0,MIREL.rychlostKrivkyAbs)
-
-			if math.abs(os.clock()-MIREL.posledniKodCas) > 5 and MIREL.NO.rezim == "PRE" then --ztrata kodu
+			if math.abs(os.clock()-MIREL.posledniKodCas) > 5 and MIREL.NO.rezim == "PRE" and MIREL.rychlostPodleNavesti >= 120 then --ztrata kodu
+				MIREL.kod = 0
+				Call("SetControlValue", "NO1", 0, 0)
+				Call("SetControlValue", "NO2", 0, 0)
+				Call("SetControlValue", "NO3", 0, 0)
+				Call("SetControlValue", "NO4", 0, 0)
+				MIREL.NO.prenosNavesti = false
+				MIREL.kodovaneMezikruzi = false
+				MIREL.NO.NO7 = false
+				MIREL.NO.NO8 = false
+				MIREL.mezikruziZvyseni = 0
+				MIREL.rychlostPodleNavesti = 120
+				if MIREL.rychlostPodleNavesti + MIREL.mezikruziZvyseni < MIREL.zobrazenaRychlost and not MIREL.modelujKrivku and not MIREL.manual then
+					MIREL:ModelujKrivku(MIREL.kod)
+				elseif (not MIREL.modelujKrivku and not MIREL.manual) or MIREL.rychlostPodleNavesti + MIREL.mezikruziZvyseni > MIREL.zobrazenaRychlost or Call("GetSpeed") < 5 then
+					MIREL:ZvysRychlost(MIREL.rychlostPodleNavesti + MIREL.mezikruziZvyseni)
+				end
+			elseif math.abs(os.clock()-MIREL.posledniKodCas) > 23 and MIREL.NO.rezim == "PRE" then --ztrata kodu pri kodovani omezujiciho znaku
 				MIREL.kod = 0
 				Call("SetControlValue", "NO1", 0, 0)
 				Call("SetControlValue", "NO2", 0, 0)
@@ -529,8 +545,7 @@ MIREL = { --objekt MIRELu
 				Call("SetControlValue",MIREL.maxPermissiveSpeedNeedleControlValueName,0,MIREL.rychlostKrivkyAbs)
 			end
 			
-			if Call("GetControlValue",MIREL.batteryControlValueName,0) == 1 and MIREL.narodniVolba > 0 and MIREL.narodniVolba < 5 then
-				
+			if _G[MIREL.batteryVariableName] == 1 and MIREL.narodniVolba > 0 and MIREL.narodniVolba < 5 then
 				MIREL.testRychlost = false
 				MIREL.testTlak = false
 				MIREL.NO.blokujBlikaniTest = false
@@ -556,7 +571,7 @@ MIREL = { --objekt MIRELu
 						else
 							Call("SetControlValue","ZS11",0,1)
 						end
-						rizeniAkt = Call("GetControlValue",MIREL.isActiveCabControlValueName,0)
+						rizeniAkt = _G[MIREL.isAnywhereActiveCabVariableName]
 						MIREL.casD1_1testu = 0
 						MIREL.D1_1 = true
 						MIREL.D1_2 = true
@@ -567,7 +582,7 @@ MIREL = { --objekt MIRELu
 						MIREL.D1_7 = true
 						MIREL.D1_zacatekBloku = os.clock()
 						MIREL.D1_blokujPrenos = true
-						MIREL.blokBrzdyVZ = false
+						MIREL.odpadleSoupatkoVZ = false
 					end
 
 					MIREL.D1_ujetaVzdalenost = MIREL.D1_ujetaVzdalenost + math.abs(MIREL.rychlostKMH/3.6) * deltaUpdateTimeFromGame
@@ -585,22 +600,22 @@ MIREL = { --objekt MIRELu
 					if MIREL.casD1_1testu > 0.5 and MIREL.D1_1 then
 						MIREL.D1_1 = false
 						MIREL.casD1_1testu = 0
-						Print("Test MIREL.D1_1 uspesny!")
+						-- Print("Test MIREL.D1_1 uspesny!")
 					end
 
 					if rizeniAkt == 0 then
-						if Call("GetControlValue","Rizeni",0) == 1 and MIREL.D1_2 then
+						if _G[MIREL.isAnywhereActiveCabVariableName] == 1 and MIREL.D1_2 then
 							MIREL.D1_2 = false
-							Print("Test MIREL.D1_2 uspesny!")
+							-- Print("Test MIREL.D1_2 uspesny!")
 						end
 					elseif rizeniAkt == 1 then
-						if Call("GetControlValue","Rizeni",0) == 0 and MIREL.D1_2 then
+						if _G[MIREL.isAnywhereActiveCabVariableName] == 0 and MIREL.D1_2 then
 							MIREL.D1_2 = false
-							Print("Test MIREL.D1_2 uspesny!")
+							-- Print("Test MIREL.D1_2 uspesny!")
 						end
 					end
 
-					if Call("GetControlValue","Rizeni",0) == 1 then
+					if _G[MIREL.isAnywhereActiveCabVariableName] == 1 then
 						if Call("GetControlValue","Reverser",0) == 0 then
 							MIREL.D1_smer0 = true
 						end
@@ -609,7 +624,7 @@ MIREL = { --objekt MIRELu
 						end
 						if MIREL.D1_smer0 and MIREL.D1_smerP and MIREL.D1_3 then
 							MIREL.D1_3 = false
-							Print("Test MIREL.D1_3 uspesny!")
+							-- Print("Test MIREL.D1_3 uspesny!")
 						end
 
 						if Call("GetControlValue","Reverser",0) == 0 then
@@ -620,7 +635,7 @@ MIREL = { --objekt MIRELu
 						end
 						if MIREL.D1_smer0 and MIREL.D1_smerZ and MIREL.D1_4 then
 							MIREL.D1_4 = false
-							Print("Test MIREL.D1_4 uspesny!")
+							-- Print("Test MIREL.D1_4 uspesny!")
 						end
 						
 						if Call("GetControlValue","EngineBrakeControl",0) == 1 and Call("GetControlValue","LocoBrakeCylinderPressureBAR",0) >= 3.5 then
@@ -631,34 +646,32 @@ MIREL = { --objekt MIRELu
 						end
 						if MIREL.D1_BP_od and MIREL.D1_BP_za and MIREL.D1_5 then
 							MIREL.D1_5 = false
-							Print("Test MIREL.D1_5 uspesny!")
+							-- Print("Test MIREL.D1_5 uspesny!")
 						end
-					end
+						
+						if Call("GetControlValue","BrakePipePressureBAR",0) >= 4.9 and MIREL.D1_6 and not MIREL.blokujEPV_NZ then
+							MIREL.odpadleSoupatkoVZ = true
+							MIREL.D1_testEPV = true
+							-- Print("Zahajuji test MIREL.D1_6!")
+						end
+						if MIREL.D1_testEPV and Call("GetControlValue","BrakePipePressureBAR",0) < 3 and MIREL.D1_6 then
+							MIREL.D1_testEPV = false
+							MIREL.odpadleSoupatkoVZ = false
+							MIREL.D1_6 = false
+							-- Print("Test MIREL.D1_6 uspesny!")
+						end
 
-					if Call("GetControlValue","BrakePipePressureBAR",0) >= 4.9 and MIREL.D1_6 and not MIREL.blokujEPV_NZ then
-						MIREL.blokBrzdyVZ = true
-						Call("SetControlValue","TrainBrakeControl",0,1)
-						MIREL.D1_testEPV = true
-						Print("Zahajuji test MIREL.D1_6!")
-					end
-					if MIREL.D1_testEPV and Call("GetControlValue","BrakePipePressureBAR",0) < 3 and MIREL.D1_6 then
-						MIREL.D1_testEPV = false
-						MIREL.blokBrzdyVZ = false
-						MIREL.D1_6 = false
-						Print("Test MIREL.D1_6 uspesny!")
-					end
-
-					if Call("GetControlValue","BrakePipePressureBAR",0) >= 4.9 and not MIREL.D1_6 and MIREL.D1_7 and not MIREL.blokujEPV_NZ then
-						MIREL.blokBrzdyVZ = true
-						Call("SetControlValue","TrainBrakeControl",0,1)
-						MIREL.D1_testEPV = true
-						Print("Zahajuji test MIREL.D1_7!")
-					end
-					if MIREL.D1_testEPV and Call("GetControlValue","BrakePipePressureBAR",0) < 3 and not MIREL.D1_6 then
-						MIREL.D1_testEPV = false
-						MIREL.blokBrzdyVZ = false
-						MIREL.D1_7 = false
-						Print("Test MIREL.D1_7 uspesny!")
+						if Call("GetControlValue","BrakePipePressureBAR",0) >= 4.9 and not MIREL.D1_6 and MIREL.D1_7 and not MIREL.blokujEPV_NZ then
+							MIREL.odpadleSoupatkoVZ = true
+							MIREL.D1_testEPV = true
+							-- Print("Zahajuji test MIREL.D1_7!")
+						end
+						if MIREL.D1_testEPV and Call("GetControlValue","BrakePipePressureBAR",0) < 3 and not MIREL.D1_6 then
+							MIREL.D1_testEPV = false
+							MIREL.odpadleSoupatkoVZ = false
+							MIREL.D1_7 = false
+							-- Print("Test MIREL.D1_7 uspesny!")
+						end
 					end
 					
 					if not MIREL.D1_1 and not MIREL.D1_2 and not MIREL.D1_3 and not MIREL.D1_4 and not MIREL.D1_5 and not MIREL.D1_6 and not MIREL.D1_7 then
@@ -690,8 +703,7 @@ MIREL = { --objekt MIRELu
 							MIREL.NO.rezim = "TOL"
 							Call("SetControlValue","ZS1B",0,1)
 							MIREL.blokujEPV_NZ = true
-							MIREL.blokBrzdyVZ = true
-							Call("SetControlValue","TrainBrakeControl",0,1)
+							MIREL.odpadleSoupatkoVZ = true
 							MIREL.NO.NO7 = false
 							MIREL.NO.NO8 = true
 							MIREL.NO.NO9 = true
@@ -891,7 +903,7 @@ MIREL = { --objekt MIRELu
 							MIREL.NO.NO11 = "ST-"
 							MIREL.NO.DISPLEJ.stav = MIREL.NO.DISPLEJ.NEAKTIVNE
 						end
-						if math.abs(MIREL.rychlostKMH) > MIREL.zobrazenaRychlost + 7 then
+						if math.abs(MIREL.rychlostKMH) > 3 and _G[MIREL.isAnywhereActiveCabVariableName] == 1 then
 							MIREL:NouzoveZastaveni(2)
 						end
 						MIREL.NO.DISPLEJ.blikej = false
@@ -1009,10 +1021,19 @@ MIREL = { --objekt MIRELu
 			else
 				Call("MIREL:SetText", MIREL.NO.dreimalEmptyChar, 0)
 				MIREL.NO.DISPLEJ.blikej = false
-				Call("SetControlValue","TrainBrakeControl",0,1)	-- Nouzové plnění brzdy
-				Call("SetControlValue","PomernyTah",0,-1)
-				PomernyTah = -1
-				MIREL.blokBrzdyVZ = true
+				MIREL.uspesnyD1 = false
+				MIREL.D1_smerP = false
+				MIREL.D1_smer0 = false
+				MIREL.D1_smerZ = false
+				MIREL.D1_BP_od = false
+				MIREL.D1_BP_za = false
+				MIREL.casD1_1testu = 0
+				MIREL.D1_testEPV = false
+				MIREL.blokujEPV_NZ = false
+				MIREL.D1_ujetaVzdalenost = 0
+				-- Call("SetControlValue","PomernyTah",0,-1)
+				-- PomernyTah = -1
+				MIREL.odpadleSoupatkoVZ = false
 				MIREL.blokujEPV_NZ = false
 				MIREL.vyzadujVybavovani = true
 				MIREL:NouzoveZastaveni(0)
@@ -1025,7 +1046,21 @@ MIREL = { --objekt MIRELu
 				MIREL.D1_7 = false
 				rizeniAkt = nil
 				MIREL.NO.init = false
+				MIREL.NO.NO1 = false
+				MIREL.NO.NO2 = false
+				MIREL.NO.NO3 = false
+				MIREL.NO.NO4 = false
+				MIREL.NO.NO5 = false
+				MIREL.NO.NO7 = false
+				MIREL.NO.NO8 = false
+				MIREL.NO.NO9 = false
+				MIREL.NO.NO10 = false
+				MIREL.zamekRychlosti = false
 				Call("SetControlValue","NO_bodka",0)
+				Call("SetControlValue", "NO1", 0, 0)
+				Call("SetControlValue", "NO2", 0, 0)
+				Call("SetControlValue", "NO3", 0, 0)
+				Call("SetControlValue", "NO4", 0, 0)
 			end
 			if not MIREL.NO.blokujBlikaniTest then
 				Call("SetControlValue","D1_1",0,MIREL:BolToDecToBol(MIREL.D1_1))
@@ -1112,18 +1147,18 @@ MIREL = { --objekt MIRELu
 					end
 					MIREL.NO.DISPLEJ.blikej = true
 				end
-			elseif MIREL.kodovaneMezikruzi and math.abs(MIREL.rychlostKMH) > 1 and MIREL.modelujKrivku then -- zvysovanie maximalnej rychlosti pri kodovani medzikruzia
+			elseif MIREL.kodovaneMezikruzi and math.abs(MIREL.rychlostKMH) > 1 and MIREL.mezikruziZvyseni < 80 then -- zvysovanie maximalnej rychlosti pri kodovani medzikruzia
 				MIREL.NO.DISPLEJ.blikej = true
 				MIREL.NO.casMenu = 3 -- zavre se za 2 vteriny
 				MIREL.NO.blokujZobrazeniRychlosti = true
 				if MIREL.NO.DISPLEJ.stav == MIREL.NO.DISPLEJ.RYCH then
 					MIREL.NO.DISPLEJ.stav = MIREL.NO.DISPLEJ.mezikruziRYCH
 					MIREL.NO.NO11 = MIREL.mezikruziZvyseni + 40
-					Print("Zapinam MIREL.NO.rezim zmeny rychlosti mezikruzi; Aktualni: "..MIREL.mezikruziZvyseni+40)
+					-- Print("Zapinam MIREL.NO.rezim zmeny rychlosti mezikruzi; Aktualni: "..MIREL.mezikruziZvyseni+40)
 				elseif MIREL.NO.DISPLEJ.stav == MIREL.NO.DISPLEJ.mezikruziRYCH then
 					if MIREL.mezikruziZvyseni < 80 then
 						MIREL.mezikruziZvyseni = MIREL.mezikruziZvyseni + 20
-						Print("Zvedam mezikruzi; Aktualni: "..MIREL.mezikruziZvyseni+40)
+						-- Print("Zvedam mezikruzi; Aktualni: "..MIREL.mezikruziZvyseni+40)
 						MIREL.NO.NO11 = MIREL.mezikruziZvyseni + 40
 					end
 				end
@@ -1131,7 +1166,7 @@ MIREL = { --objekt MIRELu
 		end,
 
 		Enter = function(self)
-			Print("Enter zmack")
+			-- Print("Enter zmack")
 			if math.abs(MIREL.rychlostKMH) < 0.1 then --zadavání do menu pri stati
 				MIREL.NO.casUloz = 0
 				MIREL.NO.casMenu = 0
@@ -1215,23 +1250,7 @@ MIREL = { --objekt MIRELu
 					end
 				end
 			elseif MIREL.modelujKrivku and MIREL.NO.DISPLEJ.stav == MIREL.NO.DISPLEJ.RYCH and not MIREL.manual then
-				MIREL.NO.casUloz = 0
-				MIREL.NO.casMenu = 0
-				MIREL.manual = true
-				if Call("GetSpeed")*3.6 > 120 then
-					MIREL.maxManual = Call("GetSpeed")*3.6
-				else
-					MIREL.maxManual = 120
-				end
-				Print(MIREL.maxManual)
-				MIREL:UkonciModelovaniKrivky()
-				MIREL.NO.DISPLEJ.stav = MIREL.NO.DISPLEJ.ULOZ
-				MIREL.NO.NO11 = MIREL.NO.dreimalFullChar
-				MIREL.NO.zopakujPriUlozeni = "MAN"
-				MIREL.NO.blokujZobrazeniRychlosti = true
-				MIREL.NO.DISPLEJ.blikej = false
-				MIREL.zobrazenaRychlost = math.min(MIREL.maxDesignSpeed,MIREL.maxManual,MIREL.rychlostRezimu,MIREL.nastavenaRychlost,MIREL.zamekRychlostiVal)
-				Print(MIREL.zobrazenaRychlost)
+				MIREL:Manual()
 			elseif MIREL.NO.DISPLEJ.stav == MIREL.NO.DISPLEJ.RYCH and MIREL.rychlostKMH > 10 and not MIREL.zamekRychlosti and MIREL.NO.rezim == "PRE" then --systém Najvyššej dovolenej
 				MIREL.NO.casUloz = 0
 				MIREL.NO.casMenu = 0
@@ -1272,30 +1291,51 @@ MIREL = { --objekt MIRELu
 			end
 		end,
 
+		Manual = function(self)
+			MIREL.NO.casUloz = 0
+			MIREL.NO.casMenu = 0
+			MIREL.manual = true
+			if Call("GetSpeed")*3.6 > 120 then
+				MIREL.maxManual = Call("GetSpeed")*3.6
+			else
+				MIREL.maxManual = 120
+			end
+			-- Print(MIREL.maxManual)
+			MIREL:UkonciModelovaniKrivky()
+			MIREL.NO.DISPLEJ.stav = MIREL.NO.DISPLEJ.ULOZ
+			MIREL.NO.NO11 = MIREL.NO.dreimalFullChar
+			MIREL.NO.zopakujPriUlozeni = "MAN"
+			MIREL.NO.blokujZobrazeniRychlosti = true
+			MIREL.NO.DISPLEJ.blikej = false
+			MIREL.zobrazenaRychlost = math.min(MIREL.maxDesignSpeed,MIREL.maxManual,MIREL.rychlostRezimu,MIREL.nastavenaRychlost,MIREL.zamekRychlostiVal)
+		end,
+
 		ModelujKrivku = function(self,navestNO)
 			if (MIREL.rychlostKMH > 40 and (navestNO == 2 or navestNO == 4)) or MIREL.rychlostKMH > 120 then
 				MIREL.modelujKrivku = true
-				Print("NO kod: "..navestNO)
+				-- Print("NO kod: "..navestNO)
 				if navestNO ~= 1 and navestNO ~= 0 then
 					MIREL.krivkaDelkaCas = MIREL.zobrazenaRychlost/(MIREL.krivkaDecceleration*3.6)
 					MIREL.krivkaDelkaDraha = ((MIREL.zobrazenaRychlost/3.6)*MIREL.krivkaDelkaCas) - (0.5 * MIREL.krivkaDecceleration * MIREL.krivkaDelkaCas^2)
 					MIREL.modelujKrivkuDo120 = false
-					Print("Cilova rychlost: 0")
+					-- Print("Cilova rychlost: 0")
 				else
 					MIREL.krivkaDelkaCas = (MIREL.zobrazenaRychlost-120)/(MIREL.krivkaDecceleration*3.6)
-					MIREL.krivkaDelkaDraha = (((MIREL.zobrazenaRychlost)/3.6)*MIREL.krivkaDelkaCas) - (0.5 * MIREL.krivkaDecceleration * MIREL.krivkaDelkaCas^2)
+					MIREL.krivkaDelkaDraha = ((MIREL.zobrazenaRychlost/3.6)*MIREL.krivkaDelkaCas) - (0.5 * MIREL.krivkaDecceleration * MIREL.krivkaDelkaCas^2)
 					MIREL.modelujKrivkuDo120 = true
-					Print("Cilova rychlost: 120")
+					-- Print("Cilova rychlost: 120")
 				end
 				MIREL.krivkaDelkaDrahaPred = math.max(900 - MIREL.krivkaDelkaDraha,0)
 				MIREL.krivkaDelkaCasPred = MIREL.krivkaDelkaDrahaPred / MIREL.zobrazenaRychlost
 				MIREL.krivkaDrahaUjeta = 0
-				Print("RychlostNO: "..MIREL.zobrazenaRychlost)
-				Print("Planovane zpomaleni: "..MIREL.krivkaDecceleration)
-				Print("Delka krivky [s]: "..MIREL.krivkaDelkaCas)
-				Print("Delka krivky [m]: "..MIREL.krivkaDelkaDraha)
-				Print("Delka do zacatku krivky [m]: "..MIREL.krivkaDelkaDrahaPred)
-				Print("Cas do nouzoveho brzdeni [s]: "..MIREL.krivkaDelkaCasPred)
+				if MIREL.DEBUG then
+					Print("RychlostNO: "..MIREL.zobrazenaRychlost)
+					Print("Planovane zpomaleni: "..MIREL.krivkaDecceleration)
+					Print("Delka krivky [s]: "..MIREL.krivkaDelkaCas)
+					Print("Delka krivky [m]: "..MIREL.krivkaDelkaDraha)
+					Print("Delka do zacatku krivky [m]: "..MIREL.krivkaDelkaDrahaPred)
+					Print("Cas do nouzoveho brzdeni [s]: "..MIREL.krivkaDelkaCasPred)
+				end
 				if MIREL.krivkaDelkaCasPred > 10 then
 					MIREL.budeOpakovanaBdelostnaVyzva = true
 				end
@@ -1303,7 +1343,10 @@ MIREL = { --objekt MIRELu
 				MIREL.vychoziRychlost = MIREL.zobrazenaRychlost
 				MIREL.casPredKrivkou = 0
 				MIREL.NO.blikejNO10 = true
-			elseif navestNO == 2 or navestNO == 4 then
+			elseif navestNO == 4 then
+				MIREL.rychlostKrivky = 40 + MIREL.mezikruziZvyseni
+				MIREL.rychlostKrivkyAbs = 40 + MIREL.mezikruziZvyseni
+			elseif navestNO == 2 then
 				MIREL.rychlostKrivky = 40
 				MIREL.rychlostKrivkyAbs = 40
 			else
@@ -1332,16 +1375,15 @@ MIREL = { --objekt MIRELu
 		NouzoveZastaveni = function(self,cislo)
 			if cislo ~= 0 then
 				MIREL.blokujEPV_NZ = true
-				MIREL.blokBrzdyVZ = true
-				Call("SetControlValue", "ThrottleAndBrake", 0, -1)
-				Call("SetControlValue", "TrainBrakeControl", 0, 1)
+				MIREL.odpadleSoupatkoVZ = true
+				Call("SetControlValue", "VykonPredTrCh", 0, -1)
 				PomernyTah = -1
 				Call("SetControlValue", "PomernyTah", 0, -1)
 				MIREL.NO.NO11 = "NZ"..cislo
 				MIREL.NO.DISPLEJ.stav = MIREL.NO.DISPLEJ.NZ
 				MIREL.NO.DISPLEJ.blikej = false
 			else
-				MIREL.blokBrzdyVZ = false
+				MIREL.odpadleSoupatkoVZ = false
 				MIREL.casBdelost = 0
 				MIREL.NO.DISPLEJ.stav = MIREL.NO.DISPLEJ.RYCH
 				MIREL.NO.NO11 = MIREL.zobrazenaRychlost
@@ -1379,13 +1421,12 @@ MIREL = { --objekt MIRELu
 		end,
 
 		MirelInit = function(self)
-			MIREL.blokBrzdyVZ = false
+			MIREL.odpadleSoupatkoVZ = false
 			MIREL.NO.init = true
 			if MIREL.NO.rezim == "TOL" then
 				Call("SetControlValue","ZS1B",0,1)
 				MIREL.blokujEPV_NZ = true
-				MIREL.blokBrzdyVZ = true
-				Call("SetControlValue","TrainBrakeControl",0,1)
+				MIREL.odpadleSoupatkoVZ = true
 			end
 			MIREL.nastavenaRychlost = MIREL.afterInitSpeed
 			MIREL.NO.DISPLEJ.stav = MIREL.NO.DISPLEJ.RYCH
@@ -1400,7 +1441,7 @@ MIREL = { --objekt MIRELu
 			if MIREL.rychlostKrivkyAbs < MIREL.rychlostPodleNavesti + MIREL.mezikruziZvyseni + 7 then
 				MIREL.nulovaTolerancia = false
 			end
-			if (math.abs(MIREL.rychlostKMH) > MIREL.zobrazenaRychlost + 7 and not MIREL.nulovaTolerancia) or (math.abs(MIREL.rychlostKMH) > MIREL.zobrazenaRychlost and MIREL.nulovaTolerancia) then
+			if (math.abs(MIREL.rychlostKMH) > MIREL.zobrazenaRychlost + 7 and not MIREL.nulovaTolerancia) or (math.abs(MIREL.rychlostKMH) > MIREL.zobrazenaRychlost + 1 and MIREL.nulovaTolerancia) then
 				MIREL:NouzoveZastaveni(2)
 			elseif (math.abs(MIREL.rychlostKMH) > MIREL.zobrazenaRychlost + 5) and not MIREL.nulovaTolerancia then
 				Call("SetControlValue","ZS2",0,1)
@@ -1419,43 +1460,42 @@ MIREL = { --objekt MIRELu
 		end,
 
 		OchranaNavolenehoSmeru = function(self)
-			local smer = Call("GetControlValue","Reverser",0)
 			if Call("GetControlValue", "CisloKab", 0) == 0 then
-				if MIREL.rychlostKMH > 5 and smer == -1 then
+				if MIREL.rychlostKMH > 5 and significantReverser == -1 then
 					MIREL:NouzoveZastaveni(3)
 					MIREL.smerZS3 = false
-				elseif MIREL.rychlostKMH > 0.1 and smer == -1 then
+				elseif MIREL.rychlostKMH > 0.1 and significantReverser == -1 then
 					MIREL.smerZS3 = true
 				end
-				if MIREL.rychlostKMH < -5 and smer == 1 then
+				if MIREL.rychlostKMH < -5 and significantReverser == 1 then
 					MIREL:NouzoveZastaveni(3)
 					MIREL.smerZS3 = false
-				elseif MIREL.rychlostKMH < -0.1 and smer == 1 then
+				elseif MIREL.rychlostKMH < -0.1 and significantReverser == 1 then
 					MIREL.smerZS3 = true
 				end
-				if math.abs(MIREL.rychlostKMH) > 5 and smer == 0 then
+				if math.abs(MIREL.rychlostKMH) > 5 and significantReverser == 0 then
 					MIREL:NouzoveZastaveni(3)
 					MIREL.smerZS3 = false
-				elseif math.abs(MIREL.rychlostKMH) > 0.1 and smer == 0 then
+				elseif math.abs(MIREL.rychlostKMH) > 0.1 and significantReverser == 0 then
 					MIREL.smerZS3 = true
 				end
 			else
-				if MIREL.rychlostKMH > 5 and smer == 1 then
+				if MIREL.rychlostKMH > 5 and significantReverser == 1 then
 					MIREL:NouzoveZastaveni(3)
 					MIREL.smerZS3 = false
-				elseif MIREL.rychlostKMH > 0.1 and smer == 1 then
+				elseif MIREL.rychlostKMH > 0.1 and significantReverser == 1 then
 					MIREL.smerZS3 = true
 				end
-				if MIREL.rychlostKMH < -5 and smer == -1 then
+				if MIREL.rychlostKMH < -5 and significantReverser == -1 then
 					MIREL:NouzoveZastaveni(3)
 					MIREL.smerZS3 = false
-				elseif MIREL.rychlostKMH < -0.1 and smer == -1 then
+				elseif MIREL.rychlostKMH < -0.1 and significantReverser == -1 then
 					MIREL.smerZS3 = true
 				end
-				if math.abs(MIREL.rychlostKMH) > 5 and smer == 0 then
+				if math.abs(MIREL.rychlostKMH) > 5 and significantReverser == 0 then
 					MIREL:NouzoveZastaveni(3)
 					MIREL.smerZS3 = false
-				elseif math.abs(MIREL.rychlostKMH) > 0.1 and smer == 0 then
+				elseif math.abs(MIREL.rychlostKMH) > 0.1 and significantReverser == 0 then
 					MIREL.smerZS3 = true
 				end
 			end
@@ -1492,7 +1532,7 @@ MIREL = { --objekt MIRELu
 				if MIREL.NO.rezim == "PRE" then
 					local NO
 					local vzdalenost
-					local NOkodOld = MIREL.kod
+					MIREL.kodOld = MIREL.kod
 					--vypis("OnCustomSignalMessage - zprava: "..tostring(zprava))
 					NO = tonumber(string.sub(zprava, 1, 2))
 					vzdalenost = tonumber(string.sub(zprava, 3))
@@ -1520,18 +1560,21 @@ MIREL = { --objekt MIRELu
 							MIREL.rychlostPodleNavesti = 40
 							MIREL.posledniKodCas = os.clock()
 							MIREL.kodovaneMezikruzi = false
+							MIREL.mezikruziZvyseni = 0
 						elseif NO == 30 then			-- Opakovana Vystraha na 4AB
 							MIREL.kod = 2
 							MIREL.NO.prenosNavesti = true
 							MIREL.rychlostPodleNavesti = 40
 							MIREL.posledniKodCas = os.clock()
 							MIREL.kodovaneMezikruzi = false
+							MIREL.mezikruziZvyseni = 0
 						elseif NO == 17 then		-- Vystraha
 							MIREL.kod = 1
 							MIREL.NO.prenosNavesti = true
 							MIREL.rychlostPodleNavesti = 120
 							MIREL.posledniKodCas = os.clock()
 							MIREL.kodovaneMezikruzi = false
+							MIREL.mezikruziZvyseni = 0
 						elseif NO == 16 then		-- Volno
 							MIREL.kod = 3
 							MIREL.NO.prenosNavesti = true
@@ -1540,7 +1583,7 @@ MIREL = { --objekt MIRELu
 							MIREL.kodovaneMezikruzi = false
 							MIREL.mezikruziZvyseni = 0
 						elseif NO >= 19 and NO <= 24 then		-- omezene rychlosti
-							if NOkodOld ~= 4 then
+							if MIREL.kodOld ~= 4 then
 								MIREL.mezikruziZvyseni = 0
 							end
 							MIREL.kod = 4
@@ -1551,10 +1594,11 @@ MIREL = { --objekt MIRELu
 						elseif NO == 0 then
 							MIREL.kod = 0
 							MIREL.kodovaneMezikruzi = false
+							MIREL.mezikruziZvyseni = 0
 						end
 					end
 
-					if not MIREL.blokujPrenosNavesti and Call("GetControlValue",MIREL.batteryControlValueName,0) == 1 and not MIREL.D1_blokujPrenos then
+					if not MIREL.blokujPrenosNavesti and _G[MIREL.batteryVariableName] == 1 and not MIREL.D1_blokujPrenos then
 						Call("SetControlValue", "NO1", 0, 0)
 						Call("SetControlValue", "NO2", 0, 0)
 						Call("SetControlValue", "NO3", 0, 0)
@@ -1577,17 +1621,20 @@ MIREL = { --objekt MIRELu
 						MIREL.NO.NO7 = false
 						MIREL.NO.NO8 = false
 					end
-					if (NOkodOld == 0 or NOkodOld == 2) and MIREL.kod ~= 0 and MIREL.kod ~= 2 and MIREL.rychlostKMH < 5 then
+					if (MIREL.kodOld == 0 or MIREL.kodOld == 2) and MIREL.kod ~= 0 and MIREL.kod ~= 2 and MIREL.rychlostKMH < 5 then
 						if Call("GetControlValue","ZS7",0) == 1 then
 							Call("SetControlValue","ZS7",0,0)
 						else
 							Call("SetControlValue","ZS7",0,1)
 						end
-						NOkodOld = MIREL.kod
 					end
 			
 					if MIREL.rychlostPodleNavesti + MIREL.mezikruziZvyseni < MIREL.zobrazenaRychlost and not MIREL.modelujKrivku and not MIREL.manual and Call("GetSpeed") > 5 then
-						MIREL:ModelujKrivku(MIREL.kod)
+						if math.abs(os.clock()-MIREL.posledniKodCas) > 5 and math.abs(os.clock()-MIREL.posledniKodCas) < 23 and MIREL.kod ~= 0 then
+							MIREL:Manual()
+						else
+							MIREL:ModelujKrivku(MIREL.kod)
+						end
 					elseif MIREL.rychlostPodleNavesti + MIREL.mezikruziZvyseni > MIREL.zobrazenaRychlost or Call("GetSpeed") < 5 then
 						MIREL:ZvysRychlost(MIREL.rychlostPodleNavesti + MIREL.mezikruziZvyseni)
 					end
