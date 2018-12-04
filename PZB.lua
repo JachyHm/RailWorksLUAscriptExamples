@@ -126,6 +126,7 @@ PZB90 = { --objekt PZB
 				if PZB90.emergencyBrake then
 					PZB90.countdown500HzMonitoring = 700
 					PZB90.slowdown500HzCountdown = 0
+					PZB90.restricted500Hz = true
 				end
 				PZB90.emergencyBrake = false
 				PZB90.emergencyBrakeReason = 0
@@ -152,6 +153,7 @@ PZB90 = { --objekt PZB
 				Call("SetControlValue", "PomernyTah", 0, -1)
 				PZB90.countdown500HzMonitoring = 700
 				PZB90.slowdown500HzCountdown = 0
+				PZB90.restricted500Hz = true
 			end
 		end,
 		SetPZBOff = function(self)
