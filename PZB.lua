@@ -24,6 +24,7 @@ PZB90 = { --objekt PZB
 			LOW_500HZ_RESTRICTED_SPEED = 25,
 			MIDDLE_500HZ_RESTRICTED_SPEED = 25,
 			HIGH_500HZ_RESTRICTED_SPEED = 25,
+		STARTUP_TIME = 30,
 	---------------PZB VARIABLES---------------
 		on = false,
 		active = false,
@@ -54,6 +55,7 @@ PZB90 = { --objekt PZB
 		restricted500HzCounter = 0,
 		blinkCounter = 0,
 		emergencyBrakeReason = 0,
+		startCountdown = 30,
 	---------------PZB FUNCTIONS---------------
 		OnReceivedSignalMessage = function(self, message)
 			if message == "500" then
@@ -159,12 +161,28 @@ PZB90 = { --objekt PZB
 		SetPZBOff = function(self)
 			PZB90.on = false
 			PZB90.emergencyBrake = false
+			PZB90.startCountdown = PZB90.STARTUP_TIME
 		end,
 		Update = function(self,deltaTime,deltaUpdateTimeFromGame)
-			if PZB90.on and not LZB.active then
-				PZB90.active = true
+			if PZB90.on then
+				if not LZB.active and PZB90.startCountdown <= 0 then
+					PZB90.active = true
+				else
+					PZB90.active = false
+				end
+				if PZB90.startCountdown > 0 then
+					PZB90.startCountdown = PZB90.startCountdown - deltaTime
+					PZB90.emergencyBrake = true
+					Call("SetControlValue", "VykonPredTrCh", 0, -1)
+					PomernyTah = -1
+					Call("SetControlValue", "PomernyTah", 0, -1)
+				else
+					PZB90.startCountdown = -1
+				end
 			else
 				PZB90.active = false
+				PZB90.startCountdown = PZB90.STARTUP_TIME
+				PZB90.emergencyBrake = false
 			end
 			PZB90.trainSpeed = math.abs(Call("GetSpeed") * 3.6)
 			local reverser = Call("GetControlValue", "Reverser", 0)
