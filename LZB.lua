@@ -54,6 +54,7 @@ LZB = { --objekt LZB
 			Call("LZB_SPEED:SetText", "XXX", 0)
 			Call("SetControlValue", "LZB_ACTIVE", 0, 0)
 			LZB.active = false
+			LZB.canBeActive = false
 			LZB.blockTraction = false
 		end,
 		Update = function(self, deltaTime, deltaUpdateTimeFromGame, pomernyTah)
