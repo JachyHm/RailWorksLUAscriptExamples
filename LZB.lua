@@ -19,17 +19,44 @@ LZB = { --objekt LZB
 		metersFromLastRestriction = 0,
 		blockedSpeedChangeCountdown = 0,
 		koefDecceleration = 1,
+		blockTraction = false,
+		endZeroSpeedCountdown = -1,
+		delayedSpeedEnterCountdown = -1,
+		waitForZeroTractionBeforeTurnOff = false,
 	---------------LZB FUNCTIONS---------------
 		OnReceivedSignalMessage = function(self, message)
 			if message == "LZBSTART" then
 				LZB.canBeActive = true
 				-- SysCall("ScenarioManager:ShowAlertMessageExt", "LZB", "LZB is now active!", 2, 0)
-			elseif message == "LZBEND" then
-				LZB.canBeActive = false
-				-- SysCall("ScenarioManager:ShowAlertMessageExt", "LZB", "LZB is now deactive!", 2, 0)
+			elseif message == "LZBENDE" then
+				LZB.blockTraction = true
+				LZB.endZeroSpeedCountdown = 10
+				-- SysCall("ScenarioManager:ShowAlertMessageExt", "LZB", "LZB is now not active!", 2, 0)
 			end
 		end,
-		Update = function(self, deltaUpdateTimeFromGame)
+		ConfirmLZBend = function(self)
+			if LZB.endZeroSpeedCountdown > 0 then
+				LZB.endZeroSpeedCountdown = -1
+				LZB.delayedSpeedEnterCountdown = 2
+			end
+		end,
+		ARRKeyPress = function(self)
+			if LZB.delayedSpeedEnterCountdown > 0 then
+				LZB.waitForZeroTractionBeforeTurnOff = true
+				LZB.delayedSpeedEnterCountdown = -1
+			end
+		end,
+		TurnOff = function(self)
+			ARR:nastavRychlostLZB(10000)
+			Call("SetControlValue", "LZB_G_light", 0, 0)
+			Call("SetControlValue", "LZB_DISTANCE_BAR", 0, 0)
+			LZB.targetSpeed = 10000
+			Call("LZB_SPEED:SetText", "XXX", 0)
+			Call("SetControlValue", "LZB_ACTIVE", 0, 0)
+			LZB.active = false
+			LZB.blockTraction = false
+		end,
+		Update = function(self, deltaTime, deltaUpdateTimeFromGame, pomernyTah)
 			if LZB.canBeActive and PZB90.on then
 				LZB.active = true
 				LZB.lastDistanceToRestriction = 0
@@ -37,6 +64,25 @@ LZB = { --objekt LZB
 				LZB.restrictionsCount = 0
 				LZB.lastSpeedOfNextSignificantRestriction = LZB.speedOfNextSignificantRestriction
 				LZB.lastDistanceToNextSignificantRestriction = LZB.distanceToNextSignificantRestriction
+				if LZB.endZeroSpeedCountdown > 0 then
+					LZB.endZeroSpeedCountdown = LZB.endZeroSpeedCountdown - deltaTime
+				else
+					ARR:nastavCilovouRychlost(0)
+					LZB.waitForZeroTractionBeforeTurnOff = true
+					LZB.endZeroSpeedCountdown = -1
+				end
+				if LZB.delayedSpeedEnterCountdown > 0 then
+					LZB.delayedSpeedEnterCountdown = LZB.delayedSpeedEnterCountdown - deltaTime
+				else
+					ARR:nastavCilovouRychlost(0)
+					LZB.waitForZeroTractionBeforeTurnOff = true
+					LZB.endZeroSpeedCountdownTimer = -1
+				end
+				if LZB.waitForZeroTractionBeforeTurnOff and pomernyTah <= 0 then
+					LZB.waitForZeroTractionBeforeTurnOff = false
+					LZB:TurnOff()
+					return(0)
+				end					
 				if PZB90.trainType == PZB90.LOW then
 					LZB.koefDecceleration = LZB.DECCEL_U
 				elseif PZB90.trainType == PZB90.MIDDLE then
@@ -61,7 +107,7 @@ LZB = { --objekt LZB
 							if LZB.restrictionsCount == 0 then
 								LZB.speedOfNextSignificantRestriction = restrictedSpeed
 								LZB.distanceToNextSignificantRestriction = distanceToRestriction
-							elseif (LZB.distanceToNextSignificantRestriction == -1 or (LZB.distanceToNextSignificantRestriction-distanceToRestriction)+(LZB.speedOfNextSignificantRestriction-restrictedSpeed)*10 > 0 and restrictedSpeed < LZB.speedOfNextSignificantRestriction) and restrictedSpeed < LZB.speedOfNextSignificantRestriction then
+							elseif (LZB.distanceToNextSignificantRestriction == -1 or (LZB.distanceToNextSignificantRestriction-distanceToRestriction)+(LZB.speedOfNextSignificantRestriction-restrictedSpeed)*(5/LZB.koefDecceleration) > 0 and restrictedSpeed < LZB.speedOfNextSignificantRestriction) and restrictedSpeed < LZB.speedOfNextSignificantRestriction then
 								LZB.speedOfNextSignificantRestriction = restrictedSpeed
 								LZB.distanceToNextSignificantRestriction = distanceToRestriction
 							end
@@ -145,6 +191,7 @@ LZB = { --objekt LZB
 				LZB.targetSpeed = 10000
 				Call("LZB_SPEED:SetText", "XXX", 0)
 				LZB.active = false
+				LZB.blockTraction = false
 			end
 			Call("SetControlValue", "LZB_ACTIVE", 0, ToBolAndBack(LZB.active))
 		end
