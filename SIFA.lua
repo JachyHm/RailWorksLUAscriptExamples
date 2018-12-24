@@ -51,9 +51,9 @@ SIFA = { --objekt SIFA
 				SIFA.emergencyBrake = false
 			end
 			if SIFA.emergencyBrake then
-				Call("SetControlValue", "VykonPredTrCh", 0, -1)
-				PomernyTah = -1
-				Call("SetControlValue", "PomernyTah", 0, -1)
+				ARR:vybeh()
+				pomernyTah = -1
+				Call("SetControlValue", "PomernyTah", 0, pomernyTah)
 			end
 		end
 }
