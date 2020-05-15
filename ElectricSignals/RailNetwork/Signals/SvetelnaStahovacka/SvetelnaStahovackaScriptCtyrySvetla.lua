@@ -17,6 +17,7 @@ end
 function OnJunctionStateChange( junction_state, parameter, direction, linkIndex )	
 end
 function OnSignalMessage( message, parameter, direction, linkIndex )
+    Call("SendSignalMessage",message,parameter,-direction,1,0)
 end
 function Update(time)
 	if probability > 0.5 then
