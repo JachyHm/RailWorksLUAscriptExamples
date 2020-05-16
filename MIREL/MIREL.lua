@@ -849,7 +849,7 @@ MIREL = { --objekt MIRELu
                                                 MIREL.blokujBdelostVyzva = false
                 
                                                 --pokud je modelovana krivka, po potvrzeni zacne indikator blikat rychle
-                                                    if MIREL.NO.blikejNO10 and MIREL.bylaBdelostnaVyzvaKrivka then 
+                                                    if MIREL.NO.blikejNO10 and MIREL.bylaBdelostnaVyzvaKrivka then
                                                         MIREL.NO.blikejRychleNO10 = true
                                                     end
                 
@@ -1707,7 +1707,6 @@ MIREL = { --objekt MIRELu
                                 MIREL.NO.DISPLEJ.blikej = false
                                 MIREL.NO.DISPLEJ.blikejRychle = false
                                 MIREL.blokujPrenosNavesti = true
-                                MIREL.NO.NO5 = false
                                 MIREL.ZS1B = false
                                 MIREL.casBdelost = 0
                                 MIREL.casPrenasenehoKodu = 0
@@ -2625,7 +2624,7 @@ MIREL = { --objekt MIRELu
                 MIREL.NO.DISPLEJ.blikej = true
                 MIREL.NO.DISPLEJ.blikejRychle = true
                 MIREL.prekroceniRychlosti = true
-            elseif not MIREL.manual then
+            elseif not MIREL.manual and MIREL.NO.DISPLEJ.stav == MIREL.NO.DISPLEJ.RYCH and MIREL.rychlostKMHabs > 1 then
                 MIREL.NO.DISPLEJ.blikej = false
                 MIREL.NO.DISPLEJ.blikejRychle = false
                 MIREL.prekroceniRychlosti = false
