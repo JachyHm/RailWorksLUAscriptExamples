@@ -576,9 +576,9 @@ MIREL = { --objekt MIRELu
                             MIREL.NO.casTlacitek = MIREL.NO.casTlacitek + deltaTime
                         end
 
-                        -- if MIREL.NO.casBlokovaniBlikani <= 0.7 then
-                        --     MIREL.NO.casBlokovaniBlikani = MIREL.NO.casBlokovaniBlikani + deltaTime
-                        -- end
+                        if MIREL.NO.casBlokovaniBlikani <= 0.7 then
+                            MIREL.NO.casBlokovaniBlikani = MIREL.NO.casBlokovaniBlikani + deltaTime
+                        end
 
                         if MIREL.modelujKrivku then
                             MIREL.casPredKrivkou = MIREL.casPredKrivkou + deltaTime
@@ -1757,15 +1757,15 @@ MIREL = { --objekt MIRELu
                         end
 
                     --zablokuj na chvili blikani po zmene, aby se nestavalo, ze po zmene hodnota zrovna nesviti
-                        -- if MIREL.NO.NO11 ~= MIREL.NO.NO11old then
-                        --     MIREL.NO.blokujBlikaniPoZmene = true
-                        --     MIREL.NO.casBlokovaniBlikani = 0
-                        --     MIREL.NO.NO11old = MIREL.NO.NO11
-                        -- end
+                        if MIREL.NO.NO11 ~= MIREL.NO.NO11old then
+                            MIREL.NO.blokujBlikaniPoZmene = true
+                            MIREL.NO.casBlokovaniBlikani = 0
+                            MIREL.NO.NO11old = MIREL.NO.NO11
+                        end
 
-                        -- if MIREL.NO.blokujBlikaniPoZmene and MIREL.NO.casBlokovaniBlikani > 0.7 then
-                        --     MIREL.NO.blokujBlikaniPoZmene = false
-                        -- end
+                        if MIREL.NO.blokujBlikaniPoZmene and MIREL.NO.casBlokovaniBlikani > 0.3 then
+                            MIREL.NO.blokujBlikaniPoZmene = false
+                        end
 
                     --pokud jsou splnene podminky pro zobrazeni skutecne rychlosti
                         if MIREL.testRychlost then
@@ -1789,7 +1789,7 @@ MIREL = { --objekt MIRELu
                         end
 
                     --pokud displej blika
-                        if MIREL.NO.DISPLEJ.blikej and not MIREL.NO.blokujBlikaniTest and MIREL.isThisCabActive then --and not MIREL.NO.blokujBlikaniPoZmene
+                        if MIREL.NO.DISPLEJ.blikej and not MIREL.NO.blokujBlikaniPoZmene and not MIREL.NO.blokujBlikaniTest and MIREL.isThisCabActive then
                             --pokud blika pomalu
                                 if not MIREL.NO.DISPLEJ.blikejRychle then
                                     if MIREL.NO.casBlikani > 0.5 then
@@ -2394,23 +2394,25 @@ MIREL = { --objekt MIRELu
 		end,
 
 		Manual = function(self)
-			MIREL.NO.casUloz = 0
-			MIREL.NO.casMenu = 0
-            MIREL.manual = true
-            MIREL.bdelostBezModre = true
-			if MIREL.rychlostKMHabs > 120 then
-				MIREL.maxManual = MIREL.rychlostKMHabs
-			else
-				MIREL.maxManual = 120
-			end
-			-- Print(MIREL.maxManual)
-			MIREL:UkonciModelovaniKrivky()
-			MIREL.NO.DISPLEJ.stav = MIREL.NO.DISPLEJ.ULOZ
-			MIREL.NO.NO11 = MIREL.NO.dreimalFullChar
-			MIREL.NO.zopakujPriUlozeni = "MAN"
-			MIREL.NO.blokujZobrazeniRychlosti = true
-			MIREL.NO.DISPLEJ.blikej = false
-			MIREL.zobrazenaRychlost = math.min(MIREL.maxDesignSpeed,MIREL.maxManual,MIREL.rychlostRezimu,MIREL.nastavenaRychlost,MIREL.zamekRychlostiVal)
+            if not MIREL.manual then
+                MIREL.NO.casUloz = 0
+                MIREL.NO.casMenu = 0
+                MIREL.manual = true
+                MIREL.bdelostBezModre = true
+                if MIREL.rychlostKMHabs > 120 then
+                    MIREL.maxManual = MIREL.rychlostKMHabs
+                else
+                    MIREL.maxManual = 120
+                end
+                -- Print(MIREL.maxManual)
+                MIREL:UkonciModelovaniKrivky()
+                MIREL.NO.DISPLEJ.stav = MIREL.NO.DISPLEJ.ULOZ
+                MIREL.NO.NO11 = MIREL.NO.dreimalFullChar
+                MIREL.NO.zopakujPriUlozeni = "MAN"
+                MIREL.NO.blokujZobrazeniRychlosti = true
+                MIREL.NO.DISPLEJ.blikej = false
+                MIREL.zobrazenaRychlost = math.min(MIREL.maxDesignSpeed,MIREL.maxManual,MIREL.rychlostRezimu,MIREL.nastavenaRychlost,MIREL.zamekRychlostiVal)
+            end
 		end,
 
 		ModelujKrivku = function(self,navestNO)
@@ -2804,7 +2806,7 @@ MIREL = { --objekt MIRELu
                                         MIREL.kod = 2
                                         MIREL.NO.prenosNavesti = true
                                         if MIREL.casPrenasenehoKodu > 5 or MIREL.rychlostPodleNavesti >= 40 then
-                                            if MIREL.rychlostKMHabs > 120 or (MIREL.vypadekKodu and MIREL.stabilniKodOld == MIREL.kod) then
+                                            if MIREL.rychlostKMHabs > 120 or (MIREL.vypadekKodu and MIREL.stabilniKodOld == MIREL.kod and MIREL.rychlostKMHabs > 40) then
                                                 MIREL:Manual()
                                             end
                                             MIREL.stabilniKodOld = MIREL.kod
@@ -2818,7 +2820,7 @@ MIREL = { --objekt MIRELu
                                         MIREL.kod = 2
                                         MIREL.NO.prenosNavesti = true
                                         if MIREL.casPrenasenehoKodu > 5 or MIREL.rychlostPodleNavesti >= 40 then
-                                            if MIREL.rychlostKMHabs > 120 or (MIREL.vypadekKodu and MIREL.stabilniKodOld == MIREL.kod) then
+                                            if MIREL.rychlostKMHabs > 120 or (MIREL.vypadekKodu and MIREL.stabilniKodOld == MIREL.kod and MIREL.rychlostKMHabs > 40) then
                                                 MIREL:Manual()
                                             end
                                             MIREL.stabilniKodOld = MIREL.kod
@@ -2854,11 +2856,11 @@ MIREL = { --objekt MIRELu
                                         MIREL.kod = 4
                                         MIREL.NO.prenosNavesti = true
                                         if MIREL.casPrenasenehoKodu > 5 then
-                                            if MIREL.rychlostKMHabs > 120 or (MIREL.vypadekKodu and MIREL.stabilniKodOld == MIREL.kod) then
-                                                MIREL:Manual()
-                                            end
                                             if MIREL.stabilniKodOld ~= 4 then
                                                 MIREL.mezikruziZvyseni = 0
+                                            end
+                                            if MIREL.rychlostKMHabs > 120 or (MIREL.vypadekKodu and MIREL.stabilniKodOld == MIREL.kod and MIREL.rychlostKMHabs > 40 + MIREL.mezikruziZvyseni) then
+                                                MIREL:Manual()
                                             end
                                             MIREL.stabilniKodOld = MIREL.kod
                                             MIREL.rychlostPodleNavesti = 40
@@ -2932,6 +2934,7 @@ MIREL = { --objekt MIRELu
                                 MIREL.casPrenasenehoKodu = 0
                                 MIREL.kod = 0
                             end
+                            MIREL.vypadekKodu = false
                         end
                     else
                         Call("SetControlValue", "NO1", 0, 0)
@@ -2947,6 +2950,7 @@ MIREL = { --objekt MIRELu
                         MIREL.casPrenasenehoKodu = 0
                         MIREL.kod = 0
                         MIREL.stabilniKodOld = 0
+                        MIREL.vypadekKodu = false
                     end
                 elseif MIREL.narodniVolba == MIREL.madarsko then
                     local telegram = tonumber(string.sub(zprava, 1, string.find(zprava, "|")-1))
@@ -3005,6 +3009,7 @@ MIREL = { --objekt MIRELu
                 MIREL.casPrenasenehoKodu = 0
                 MIREL.kod = 0
                 MIREL.stabilniKodOld = 0
+                MIREL.vypadekKodu = false
                 if MIREL.NO.prenosNavesti then
                     MIREL.casBdelost = MIREL.bdelostInterval/4
                 end
