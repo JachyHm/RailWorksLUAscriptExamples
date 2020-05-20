@@ -2079,13 +2079,14 @@ MIREL = { --objekt MIRELu
                     end
                 elseif MIREL.kodovaneMezikruzi and MIREL.rychlostKMHabs > 1 and MIREL.mezikruziZvyseni < 80 then -- zvysovanie maximalnej rychlosti pri kodovani medzikruzia
                     MIREL.NO.DISPLEJ.blikej = true
-                    MIREL.NO.casMenu = 3 -- zavre se za 2 vteriny
+                    MIREL.NO.DISPLEJ.blikejRychle = false
+                    MIREL.NO.casMenu = 0 -- zavre se za 2 vteriny
                     MIREL.NO.blokujZobrazeniRychlosti = true
                     -- if MIREL.NO.DISPLEJ.stav == MIREL.NO.DISPLEJ.RYCH then
-                    --     MIREL.NO.DISPLEJ.stav = MIREL.NO.DISPLEJ.mezikruziRYCH
+                    MIREL.NO.DISPLEJ.stav = MIREL.NO.DISPLEJ.mezikruziRYCH
                     --     MIREL.NO.NO11 = MIREL.mezikruziZvyseni + 40
                     --     -- Print("Zapinam MIREL.NO.rezim zmeny rychlosti mezikruzi; Aktualni: "..MIREL.mezikruziZvyseni+40)
-                    if MIREL.NO.DISPLEJ.stav == MIREL.NO.DISPLEJ.RYCH then
+                    if MIREL.NO.DISPLEJ.stav == MIREL.NO.DISPLEJ.mezikruziRYCH then
                         if MIREL.mezikruziZvyseni < 80 then
                             MIREL.mezikruziZvyseni = MIREL.mezikruziZvyseni + 20
                             -- Print("Zvedam mezikruzi; Aktualni: "..MIREL.mezikruziZvyseni+40)
@@ -2394,25 +2395,25 @@ MIREL = { --objekt MIRELu
 		end,
 
 		Manual = function(self)
+            MIREL.bdelostBezModre = true
+            MIREL:UkonciModelovaniKrivky()
+            if MIREL.rychlostKMHabs > 120 then
+                MIREL.maxManual = MIREL.rychlostKMHabs
+            else
+                MIREL.maxManual = 120
+            end
+            MIREL.zobrazenaRychlost = math.min(MIREL.maxDesignSpeed,MIREL.maxManual,MIREL.rychlostRezimu,MIREL.nastavenaRychlost,MIREL.zamekRychlostiVal)
             if not MIREL.manual then
                 MIREL.NO.casUloz = 0
                 MIREL.NO.casMenu = 0
-                MIREL.manual = true
-                MIREL.bdelostBezModre = true
-                if MIREL.rychlostKMHabs > 120 then
-                    MIREL.maxManual = MIREL.rychlostKMHabs
-                else
-                    MIREL.maxManual = 120
-                end
                 -- Print(MIREL.maxManual)
-                MIREL:UkonciModelovaniKrivky()
                 MIREL.NO.DISPLEJ.stav = MIREL.NO.DISPLEJ.ULOZ
                 MIREL.NO.NO11 = MIREL.NO.dreimalFullChar
                 MIREL.NO.zopakujPriUlozeni = "MAN"
                 MIREL.NO.blokujZobrazeniRychlosti = true
                 MIREL.NO.DISPLEJ.blikej = false
-                MIREL.zobrazenaRychlost = math.min(MIREL.maxDesignSpeed,MIREL.maxManual,MIREL.rychlostRezimu,MIREL.nastavenaRychlost,MIREL.zamekRychlostiVal)
             end
+            MIREL.manual = true
 		end,
 
 		ModelujKrivku = function(self,navestNO)
@@ -2568,6 +2569,7 @@ MIREL = { --objekt MIRELu
             else
                 MIREL.casBdelost = 0
                 MIREL.NO.NO5 = true
+                Call("SetControlValue","ZS1",0,0)
             end
         end,
 
@@ -2806,13 +2808,13 @@ MIREL = { --objekt MIRELu
                                         MIREL.kod = 2
                                         MIREL.NO.prenosNavesti = true
                                         if MIREL.casPrenasenehoKodu > 5 or MIREL.rychlostPodleNavesti >= 40 then
+                                            MIREL.rychlostPodleNavesti = 40
+                                            MIREL.kodovaneMezikruzi = false
+                                            MIREL.mezikruziZvyseni = 0
                                             if MIREL.rychlostKMHabs > 120 or (MIREL.vypadekKodu and MIREL.stabilniKodOld == MIREL.kod and MIREL.rychlostKMHabs > 40) then
                                                 MIREL:Manual()
                                             end
                                             MIREL.stabilniKodOld = MIREL.kod
-                                            MIREL.rychlostPodleNavesti = 40
-                                            MIREL.kodovaneMezikruzi = false
-                                            MIREL.mezikruziZvyseni = 0
                                             MIREL.prodlouzeniKodovaniStuj = 1000
                                         end
                                         MIREL.posledniKodCas = os.clock()
@@ -2820,13 +2822,13 @@ MIREL = { --objekt MIRELu
                                         MIREL.kod = 2
                                         MIREL.NO.prenosNavesti = true
                                         if MIREL.casPrenasenehoKodu > 5 or MIREL.rychlostPodleNavesti >= 40 then
+                                            MIREL.rychlostPodleNavesti = 40
+                                            MIREL.kodovaneMezikruzi = false
+                                            MIREL.mezikruziZvyseni = 0
                                             if MIREL.rychlostKMHabs > 120 or (MIREL.vypadekKodu and MIREL.stabilniKodOld == MIREL.kod and MIREL.rychlostKMHabs > 40) then
                                                 MIREL:Manual()
                                             end
                                             MIREL.stabilniKodOld = MIREL.kod
-                                            MIREL.rychlostPodleNavesti = 40
-                                            MIREL.kodovaneMezikruzi = false
-                                            MIREL.mezikruziZvyseni = 0
                                             MIREL.prodlouzeniKodovaniStuj = -1
                                         end
                                         MIREL.posledniKodCas = os.clock()
@@ -2859,12 +2861,12 @@ MIREL = { --objekt MIRELu
                                             if MIREL.stabilniKodOld ~= 4 then
                                                 MIREL.mezikruziZvyseni = 0
                                             end
+                                            MIREL.rychlostPodleNavesti = 40
+                                            MIREL.kodovaneMezikruzi = true
                                             if MIREL.rychlostKMHabs > 120 or (MIREL.vypadekKodu and MIREL.stabilniKodOld == MIREL.kod and MIREL.rychlostKMHabs > 40 + MIREL.mezikruziZvyseni) then
                                                 MIREL:Manual()
                                             end
                                             MIREL.stabilniKodOld = MIREL.kod
-                                            MIREL.rychlostPodleNavesti = 40
-                                            MIREL.kodovaneMezikruzi = true
                                             MIREL.prodlouzeniKodovaniStuj = -1
                                         end
                                         MIREL.posledniKodCas = os.clock()
@@ -2951,6 +2953,7 @@ MIREL = { --objekt MIRELu
                         MIREL.kod = 0
                         MIREL.stabilniKodOld = 0
                         MIREL.vypadekKodu = false
+                        MIREL.manual = false
                     end
                 elseif MIREL.narodniVolba == MIREL.madarsko then
                     local telegram = tonumber(string.sub(zprava, 1, string.find(zprava, "|")-1))
