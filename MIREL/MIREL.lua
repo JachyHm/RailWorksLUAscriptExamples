@@ -2077,7 +2077,7 @@ MIREL = { --objekt MIRELu
                         end
                         MIREL.NO.DISPLEJ.blikej = true
                     end
-                elseif MIREL.kodovaneMezikruzi and MIREL.rychlostKMHabs > 1 and MIREL.mezikruziZvyseni < 80 then -- zvysovanie maximalnej rychlosti pri kodovani medzikruzia
+                elseif MIREL.kodovaneMezikruzi and MIREL.rychlostKMHabs > 1 and MIREL.mezikruziZvyseni < 80 and MIREL.aktualniNZ == -1 then -- zvysovanie maximalnej rychlosti pri kodovani medzikruzia
                     MIREL.NO.DISPLEJ.blikej = true
                     MIREL.NO.DISPLEJ.blikejRychle = false
                     MIREL.NO.casMenu = 0 -- zavre se za 2 vteriny
