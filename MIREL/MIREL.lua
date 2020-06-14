@@ -1707,6 +1707,7 @@ MIREL = { --objekt MIRELu
                                 MIREL.NO.DISPLEJ.blikej = false
                                 MIREL.NO.DISPLEJ.blikejRychle = false
                                 MIREL.blokujPrenosNavesti = true
+                                MIREL.NO.NO5 = false
                                 MIREL.ZS1B = false
                                 MIREL.casBdelost = 0
                                 MIREL.casPrenasenehoKodu = 0
@@ -2496,7 +2497,7 @@ MIREL = { --objekt MIRELu
             -- if MIREL.narodniVolba == MIREL.cesko or MIREL.narodniVolba == MIREL.slovensko then
             if MIREL.aktualniNZ <= 1 then
                 if not MIREL.blokujBdelostVyzva then
-                    if MIREL.vyzadujVybavovani or (MIREL.casBdelost >= 8.5 and MIREL.bdelostBezModre) or (MIREL.casBdelost >= MIREL.bdelostInterval/4 and not MIREL.bdelostBezModre) then 
+                    if MIREL.vyzadujVybavovani or MIREL.casBdelost >= math.min(8.5, MIREL.bdelostInterval/4) then 
                         if MIREL.casBdelost > MIREL.bdelostInterval then
                             MIREL:NouzoveZastaveni(1)
                             if MIREL.MIRELversion == 3 then
