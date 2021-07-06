@@ -42,8 +42,6 @@ lenOfApproach = speedOnCrossing/3.6*CROSSING_CLOSE_TO_TRAIN_PASS
 timeUpdateLast = os.clock()
 time = 0
 
-trainDist = -100
-
 function Initialise()
 	Call("BeginUpdate")
 	Call("crossing:ActivateNode","light_left_red",0)
@@ -54,38 +52,25 @@ function Initialise()
 	Call("white:Activate",0)
 end
 
-function OnConsistApproach(frontDistance,backDistance,speed)
-	--we are actually not able to get track speed limit, so get the highest speed and preten, that this is speed limit
+nApproach = 0 --number of rail vehicles in approach section
+nRetreat = 0 --number of rail vehicles in retreat section
+
+function OnConsistApproach(frontDistance, backDistance, speed)
+	--we are actually not able to get track speed limit, so get the current game highest speed ever and pretend, that this is speed limit
 		speedOnCrossing = math.max(speedOnCrossing, speed*3.6)
 
-	--recalc length, where crossing should be at warning
-		lenOfApproach = speedOnCrossing/3.6*CROSSING_CLOSE_TO_TRAIN_PASS
+	--recalc length, where crossing should be at warning because we changed track speed at crossing
+		sApproach = speedOnCrossing/3.6*CROSSING_CLOSE_TO_TRAIN_PASS
 
-	--if front distance did not passed crossing yet, than frontDistance is significant
-		if frontDistance > 0 then
-			trainDist = math.min(trainDist, frontDistance)
-	--if already did, then if train end did not passed yet, or did, but its nearer than 15 meters use backDistance as significant distance
-		elseif backDistance >= -15 or trainDist >= -15 then
-			trainDist = math.min(trainDist, backDistance)
-	--if significant train passed crossing, open it
-		elseif trainDist < 0 then
-            close_crossing = false
-			blink_white_light = true
-			if backDistance < -lenOfApproach then
-				blink_white_light = true
-			end
-		end
-
-	--if actual occupiing train is further than 15 meters after crossing, and there is another train, set this train distance as the occupative one
-		if trainDist < -15 and frontDistance > 0 then
-			trainDist = frontDistance
-		end
-
-	--if signif. train distance is smaller, than approaching length, and it is possitive, then close crossing
-		if trainDist < lenOfApproach and trainDist > 0 then
-            close_crossing = true
-			blink_white_light = false
-            close_crossing = false
+	--if train front is before crossing, but already in approach distance, add train to approach section
+		if frontDistance > 0 and frontDistance < sApproach then
+			nApproach = nApproach + 1
+	--else-if train already passed crossing, but its end is still less than 15 meters after crossing, still occupying approach section
+		elseif backDistance >= -15 and frontDistance <= 0 then
+			nApproach = nApproach + 1
+	--else-if train already passed crossing, but its end is still in approach section from opposite side - add to retreat section
+		elseif frontDistance < 0 and backDistance > -sApproach then
+			nRetreat = nRetreat + 1
 		end
 end
 
@@ -93,6 +78,21 @@ function Update(timeGame)
 	timeUpdate = os.clock()
 	time = timeUpdate - timeUpdateLast
     timeUpdateLast = timeUpdate
+
+	if nRetreat > 0 or nApproach > 0 then --if there is a train in retreat or approach section
+		nRetreat = 0 --reset counter
+		blink_white_light = false --turn off white light
+	else -- if both retreat and approach sections are clear - turn on positive lamp
+		blink_white_light = true
+	end
+	
+	if nApproach > 0 then --if train is in approach section
+		nApproach = 0 --reset counter
+		blink_white_light = false --disable positive lamp
+		blink_red_light = true --start warning
+	else --else turn off warning
+		blink_red_light = false
+	end
     
     if close_crossing then
         blink_red_light = true

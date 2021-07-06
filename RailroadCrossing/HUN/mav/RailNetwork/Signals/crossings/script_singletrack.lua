@@ -34,8 +34,6 @@ lenOfApproach = speedOnCrossing/3.6*CROSSING_CLOSE_TO_TRAIN_PASS
 casUpdateLast = os.clock()
 cas = 0
 
-trainDist = -100
-
 function Initialise()
 	Call("BeginUpdate")
 	Call("crossing:ActivateNode","light_left_red",0)
@@ -46,49 +44,25 @@ function Initialise()
 	Call("white:Activate",0)
 end
 
-function OnConsistApproach(frontDistance,backDistance,speed)
-	--we are actually not able to get track speed limit, so get the highest speed and pretend, that this is speed limit
+nApproach = 0 --number of rail vehicles in approach section
+nRetreat = 0 --number of rail vehicles in retreat section
+
+function OnConsistApproach(frontDistance, backDistance, speed)
+	--we are actually not able to get track speed limit, so get the current game highest speed ever and pretend, that this is speed limit
 		speedOnCrossing = math.max(speedOnCrossing, speed*3.6)
 
-	--recalc length, where crossing should be at warning
-        lenOfApproach = speedOnCrossing/3.6*CROSSING_CLOSE_TO_TRAIN_PASS
-        -- Print("Activating distance: "..lenOfApproach)
+	--recalc length, where crossing should be at warning because we changed track speed at crossing
+		sApproach = speedOnCrossing/3.6*CROSSING_CLOSE_TO_TRAIN_PASS
 
-	--if front distance did not passed crossing yet, then frontDistance is significant
-		if frontDistance > 0 then
-			trainDist = math.min(trainDist, frontDistance)
-            -- Print("Train rear before crossing!")
-	--if already did, then if train end did not passed yet, or did, but its nearer than 15 meters use backDistance as significant distance
-		elseif backDistance >= -15 or trainDist >= -15 then
-			trainDist = math.min(trainDist, backDistance)
-            -- Print("Train rear passed crossing, train back did not!")
-	--if significant train passed crossing, open it
-		elseif trainDist < 0 then
-			blink_red_light = false
-            blink_white_light = false
-            -- Print("Train behind crossing!")
-			if backDistance < -lenOfApproach then
-				blink_white_light = true
-                -- Print("Train freed approaching section!")
-			end
-		end
-
-	--if actual occupiing train is further than 15 meters after crossing, and there is another train, set this train distance as the occupative one
-		if trainDist < -15 and frontDistance > 0 then
-			trainDist = frontDistance
-            -- Print("Another train incomming!")
-        end
-        
-        -- Print("Front distance: "..frontDistance)
-        -- Print("Back distance: "..backDistance)
-        -- Print("Decisive train distance: "..trainDist)
-        -- Print("Speed: "..speed)
-        -- Print("")
-
-	--if signif. train distance is smaller, than approaching length, and it is possitive, then close crossing
-		if trainDist < lenOfApproach and trainDist > 0 then
-			blink_white_light = false
-			blink_red_light = true
+	--if train front is before crossing, but already in approach distance, add train to approach section
+		if frontDistance > 0 and frontDistance < sApproach then
+			nApproach = nApproach + 1
+	--else-if train already passed crossing, but its end is still less than 15 meters after crossing, still occupying approach section
+		elseif backDistance >= -15 and frontDistance <= 0 then
+			nApproach = nApproach + 1
+	--else-if train already passed crossing, but its end is still in approach section from opposite side - add to retreat section
+		elseif frontDistance < 0 and backDistance > -sApproach then
+			nRetreat = nRetreat + 1
 		end
 end
 
@@ -96,6 +70,21 @@ function Update(time)
 	casUpdate = os.clock()
 	cas = casUpdate - casUpdateLast
 	casUpdateLast = casUpdate
+
+	if nRetreat > 0 or nApproach > 0 then --if there is a train in retreat or approach section
+		nRetreat = 0 --reset counter
+		blink_white_light = false --turn off white light
+	else -- if both retreat and approach sections are clear - turn on positive lamp
+		blink_white_light = true
+	end
+	
+	if nApproach > 0 then --if train is in approach section
+		nApproach = 0 --reset counter
+		blink_white_light = false --disable positive lamp
+		blink_red_light = true --start warning
+	else --else turn off warning
+		blink_red_light = false
+	end
 
 	if blink_red_light then
 		red_light_blink_timer = red_light_blink_timer + cas

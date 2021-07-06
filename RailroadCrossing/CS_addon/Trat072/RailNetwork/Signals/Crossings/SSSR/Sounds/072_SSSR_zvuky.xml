@@ -1,0 +1,649 @@
+<?xml version="1.0" encoding="utf-8"?>
+<cGenericAudioControl>
+	<Element>
+		<Value>
+			<Attribute name="ProxyControlRevision">
+				<kLoud-cProxyControl-eProxyControlRevision>
+					<Element>
+						<Value>eVersion2</Value>
+					</Element>
+				</kLoud-cProxyControl-eProxyControlRevision>
+			</Attribute>
+			<Attribute name="ActivationDistance">
+				<sFloat32>
+					<Element>
+						<Value>600</Value>
+					</Element>
+				</sFloat32>
+			</Attribute>
+			<Attribute name="Sound">
+				<__Indexed__kLoud-cSound>
+					<Element>
+						<Value>
+							<kLoud-cSingleSampleSound>
+								<Element>
+									<Value>
+										<Attribute name="Name">
+											<cDeltaString>
+												<Element>
+													<Value>vystraha_start</Value>
+												</Element>
+											</cDeltaString>
+										</Attribute>
+										<Attribute name="IsLooped">
+											<bool>
+												<Element>
+													<Value>0</Value>
+												</Element>
+											</bool>
+										</Attribute>
+										<Attribute name="Priority">
+											<sUInt32>
+												<Element>
+													<Value>100</Value>
+												</Element>
+											</sUInt32>
+										</Attribute>
+										<Attribute name="BaseVolume">
+											<sFloat32>
+												<Element>
+													<Value>1</Value>
+												</Element>
+											</sFloat32>
+										</Attribute>
+										<Attribute name="VolumeVariation">
+											<sFloat32>
+												<Element>
+													<Value>0</Value>
+												</Element>
+											</sFloat32>
+										</Attribute>
+										<Attribute name="BasePitchShift">
+											<sFloat32>
+												<Element>
+													<Value>1</Value>
+												</Element>
+											</sFloat32>
+										</Attribute>
+										<Attribute name="PitchShiftVariation">
+											<sFloat32>
+												<Element>
+													<Value>0</Value>
+												</Element>
+											</sFloat32>
+										</Attribute>
+										<Attribute name="AttenuationStartDist">
+											<sFloat32>
+												<Element>
+													<Value>5</Value>
+												</Element>
+											</sFloat32>
+										</Attribute>
+										<Attribute name="NoFutherAttenuationDist">
+											<sFloat32>
+												<Element>
+													<Value>600</Value>
+												</Element>
+											</sFloat32>
+										</Attribute>
+										<Attribute name="InstanceGroup">
+											<kLoud-cInstanceGroup>
+												<Element>
+													<Value>
+														<Attribute name="Name">
+															<cDeltaString>
+																<Element>
+																	<Value />
+																</Element>
+															</cDeltaString>
+														</Attribute>
+													</Value>
+												</Element>
+											</kLoud-cInstanceGroup>
+										</Attribute>
+										<Attribute name="Sample">
+											<kLoud-cSampleID>
+												<Element>
+													<Value>
+														<Attribute name="Filename">
+															<cDeltaString>
+																<Element>
+																	<Value>RailNetwork\Signals\Crossings\SSSR\Sounds\SSSR_start.wav</Value>
+																</Element>
+															</cDeltaString>
+														</Attribute>
+													</Value>
+												</Element>
+											</kLoud-cSampleID>
+										</Attribute>
+									</Value>
+								</Element>
+							</kLoud-cSingleSampleSound>
+							<kLoud-cSingleSampleSound>
+								<Element>
+									<Value>
+										<Attribute name="Name">
+											<cDeltaString>
+												<Element>
+													<Value>vystraha_loop</Value>
+												</Element>
+											</cDeltaString>
+										</Attribute>
+										<Attribute name="IsLooped">
+											<bool>
+												<Element>
+													<Value>1</Value>
+												</Element>
+											</bool>
+										</Attribute>
+										<Attribute name="Priority">
+											<sUInt32>
+												<Element>
+													<Value>100</Value>
+												</Element>
+											</sUInt32>
+										</Attribute>
+										<Attribute name="BaseVolume">
+											<sFloat32>
+												<Element>
+													<Value>1</Value>
+												</Element>
+											</sFloat32>
+										</Attribute>
+										<Attribute name="VolumeVariation">
+											<sFloat32>
+												<Element>
+													<Value>0</Value>
+												</Element>
+											</sFloat32>
+										</Attribute>
+										<Attribute name="BasePitchShift">
+											<sFloat32>
+												<Element>
+													<Value>1</Value>
+												</Element>
+											</sFloat32>
+										</Attribute>
+										<Attribute name="PitchShiftVariation">
+											<sFloat32>
+												<Element>
+													<Value>0</Value>
+												</Element>
+											</sFloat32>
+										</Attribute>
+										<Attribute name="AttenuationStartDist">
+											<sFloat32>
+												<Element>
+													<Value>5</Value>
+												</Element>
+											</sFloat32>
+										</Attribute>
+										<Attribute name="NoFutherAttenuationDist">
+											<sFloat32>
+												<Element>
+													<Value>600</Value>
+												</Element>
+											</sFloat32>
+										</Attribute>
+										<Attribute name="InstanceGroup">
+											<kLoud-cInstanceGroup>
+												<Element>
+													<Value>
+														<Attribute name="Name">
+															<cDeltaString>
+																<Element>
+																	<Value />
+																</Element>
+															</cDeltaString>
+														</Attribute>
+													</Value>
+												</Element>
+											</kLoud-cInstanceGroup>
+										</Attribute>
+										<Attribute name="Sample">
+											<kLoud-cSampleID>
+												<Element>
+													<Value>
+														<Attribute name="Filename">
+															<cDeltaString>
+																<Element>
+																	<Value>RailNetwork\Signals\Crossings\SSSR\Sounds\SSSR_loop.wav</Value>
+																</Element>
+															</cDeltaString>
+														</Attribute>
+													</Value>
+												</Element>
+											</kLoud-cSampleID>
+										</Attribute>
+									</Value>
+								</Element>
+							</kLoud-cSingleSampleSound>
+							<kLoud-cSingleSampleSound>
+								<Element>
+									<Value>
+										<Attribute name="Name">
+											<cDeltaString>
+												<Element>
+													<Value>vystraha_konec</Value>
+												</Element>
+											</cDeltaString>
+										</Attribute>
+										<Attribute name="IsLooped">
+											<bool>
+												<Element>
+													<Value>0</Value>
+												</Element>
+											</bool>
+										</Attribute>
+										<Attribute name="Priority">
+											<sUInt32>
+												<Element>
+													<Value>100</Value>
+												</Element>
+											</sUInt32>
+										</Attribute>
+										<Attribute name="BaseVolume">
+											<sFloat32>
+												<Element>
+													<Value>1</Value>
+												</Element>
+											</sFloat32>
+										</Attribute>
+										<Attribute name="VolumeVariation">
+											<sFloat32>
+												<Element>
+													<Value>0</Value>
+												</Element>
+											</sFloat32>
+										</Attribute>
+										<Attribute name="BasePitchShift">
+											<sFloat32>
+												<Element>
+													<Value>1</Value>
+												</Element>
+											</sFloat32>
+										</Attribute>
+										<Attribute name="PitchShiftVariation">
+											<sFloat32>
+												<Element>
+													<Value>0</Value>
+												</Element>
+											</sFloat32>
+										</Attribute>
+										<Attribute name="AttenuationStartDist">
+											<sFloat32>
+												<Element>
+													<Value>5</Value>
+												</Element>
+											</sFloat32>
+										</Attribute>
+										<Attribute name="NoFutherAttenuationDist">
+											<sFloat32>
+												<Element>
+													<Value>600</Value>
+												</Element>
+											</sFloat32>
+										</Attribute>
+										<Attribute name="InstanceGroup">
+											<kLoud-cInstanceGroup>
+												<Element>
+													<Value>
+														<Attribute name="Name">
+															<cDeltaString>
+																<Element>
+																	<Value />
+																</Element>
+															</cDeltaString>
+														</Attribute>
+													</Value>
+												</Element>
+											</kLoud-cInstanceGroup>
+										</Attribute>
+										<Attribute name="Sample">
+											<kLoud-cSampleID>
+												<Element>
+													<Value>
+														<Attribute name="Filename">
+															<cDeltaString>
+																<Element>
+																	<Value>RailNetwork\Signals\Crossings\SSSR\Sounds\SSSR_end.wav</Value>
+																</Element>
+															</cDeltaString>
+														</Attribute>
+													</Value>
+												</Element>
+											</kLoud-cSampleID>
+										</Attribute>
+									</Value>
+								</Element>
+							</kLoud-cSingleSampleSound>
+						</Value>
+					</Element>
+				</__Indexed__kLoud-cSound>
+			</Attribute>
+			<Attribute name="Curve">
+				<__Indexed__kLoud-cCurve>
+					<Element>
+						<Value />
+					</Element>
+				</__Indexed__kLoud-cCurve>
+			</Attribute>
+			<Attribute name="ModifierChain">
+				<__Indexed__kLoud-cModifierChain>
+					<Element>
+						<Value />
+					</Element>
+				</__Indexed__kLoud-cModifierChain>
+			</Attribute>
+			<Attribute name="InstanceGroup">
+				<__Indexed__kLoud-cInstanceGroup>
+					<Element>
+						<Value />
+					</Element>
+				</__Indexed__kLoud-cInstanceGroup>
+			</Attribute>
+			<Attribute name="Loop">
+				<__Indexed__kLoud-cControlledLoop>
+					<Element>
+						<Value>
+							<kLoud-cControlledLoop>
+								<Element>
+									<Value>
+										<Attribute name="PlayState">
+											<ePlayState>
+												<Element>
+													<Value>BOTH</Value>
+												</Element>
+											</ePlayState>
+										</Attribute>
+										<Attribute name="Name">
+											<cDeltaString>
+												<Element>
+													<Value>vystraha_loop</Value>
+												</Element>
+											</cDeltaString>
+										</Attribute>
+										<Attribute name="Sound">
+											<kLoud-cSound>
+												<Element>
+													<Value>
+														<Attribute name="Name">
+															<cDeltaString>
+																<Element>
+																	<Value>vystraha_loop</Value>
+																</Element>
+															</cDeltaString>
+														</Attribute>
+													</Value>
+												</Element>
+											</kLoud-cSound>
+										</Attribute>
+										<Attribute name="ModifierChain">
+											<kLoud-cModifierChain>
+												<Element>
+													<Value>
+														<Attribute name="Name">
+															<cDeltaString>
+																<Element>
+																	<Value />
+																</Element>
+															</cDeltaString>
+														</Attribute>
+													</Value>
+												</Element>
+											</kLoud-cModifierChain>
+										</Attribute>
+										<Attribute name="ControllerName">
+											<cDeltaString>
+												<Element>
+													<Value>vystraha</Value>
+												</Element>
+											</cDeltaString>
+										</Attribute>
+										<Attribute name="LoopCondition">
+											<kLoud-cControlledLoop-eLoopCondition>
+												<Element>
+													<Value>ValueInRange</Value>
+												</Element>
+											</kLoud-cControlledLoop-eLoopCondition>
+										</Attribute>
+										<Attribute name="ActiveRangeStartValue">
+											<sFloat32>
+												<Element>
+													<Value>1.5</Value>
+												</Element>
+											</sFloat32>
+										</Attribute>
+										<Attribute name="ActiveRangeEndValue">
+											<sFloat32>
+												<Element>
+													<Value>2.5</Value>
+												</Element>
+											</sFloat32>
+										</Attribute>
+										<Attribute name="ValueIsChangingGateTime">
+											<sFloat32>
+												<Element>
+													<Value>0</Value>
+												</Element>
+											</sFloat32>
+										</Attribute>
+										<Attribute name="InstanceGroup">
+											<kLoud-cInstanceGroup>
+												<Element>
+													<Value>
+														<Attribute name="Name">
+															<cDeltaString>
+																<Element>
+																	<Value />
+																</Element>
+															</cDeltaString>
+														</Attribute>
+													</Value>
+												</Element>
+											</kLoud-cInstanceGroup>
+										</Attribute>
+									</Value>
+								</Element>
+							</kLoud-cControlledLoop>
+						</Value>
+					</Element>
+				</__Indexed__kLoud-cControlledLoop>
+			</Attribute>
+			<Attribute name="Oneshot">
+				<__Indexed__kLoud-cTriggeredOneshot>
+					<Element>
+						<Value>
+							<kLoud-cTriggeredOneshot>
+								<Element>
+									<Value>
+										<Attribute name="PlayState">
+											<ePlayState>
+												<Element>
+													<Value>BOTH</Value>
+												</Element>
+											</ePlayState>
+										</Attribute>
+										<Attribute name="Name">
+											<cDeltaString>
+												<Element>
+													<Value>vystraha_start</Value>
+												</Element>
+											</cDeltaString>
+										</Attribute>
+										<Attribute name="Sound">
+											<kLoud-cSound>
+												<Element>
+													<Value>
+														<Attribute name="Name">
+															<cDeltaString>
+																<Element>
+																	<Value>vystraha_start</Value>
+																</Element>
+															</cDeltaString>
+														</Attribute>
+													</Value>
+												</Element>
+											</kLoud-cSound>
+										</Attribute>
+										<Attribute name="ModifierChain">
+											<kLoud-cModifierChain>
+												<Element>
+													<Value>
+														<Attribute name="Name">
+															<cDeltaString>
+																<Element>
+																	<Value />
+																</Element>
+															</cDeltaString>
+														</Attribute>
+													</Value>
+												</Element>
+											</kLoud-cModifierChain>
+										</Attribute>
+										<Attribute name="ControllerName">
+											<cDeltaString>
+												<Element>
+													<Value>vystraha</Value>
+												</Element>
+											</cDeltaString>
+										</Attribute>
+										<Attribute name="TriggerType">
+											<kLoud-eTriggerType>
+												<Element>
+													<Value>ValueIncreasePast</Value>
+												</Element>
+											</kLoud-eTriggerType>
+										</Attribute>
+										<Attribute name="TriggerValue">
+											<sFloat32>
+												<Element>
+													<Value>0.5</Value>
+												</Element>
+											</sFloat32>
+										</Attribute>
+										<Attribute name="ValueIsChangingGateTime">
+											<sFloat32>
+												<Element>
+													<Value>0</Value>
+												</Element>
+											</sFloat32>
+										</Attribute>
+										<Attribute name="InstanceGroup">
+											<kLoud-cInstanceGroup>
+												<Element>
+													<Value>
+														<Attribute name="Name">
+															<cDeltaString>
+																<Element>
+																	<Value />
+																</Element>
+															</cDeltaString>
+														</Attribute>
+													</Value>
+												</Element>
+											</kLoud-cInstanceGroup>
+										</Attribute>
+									</Value>
+								</Element>
+							</kLoud-cTriggeredOneshot>
+							<kLoud-cTriggeredOneshot>
+								<Element>
+									<Value>
+										<Attribute name="PlayState">
+											<ePlayState>
+												<Element>
+													<Value>BOTH</Value>
+												</Element>
+											</ePlayState>
+										</Attribute>
+										<Attribute name="Name">
+											<cDeltaString>
+												<Element>
+													<Value>vystraha_konec</Value>
+												</Element>
+											</cDeltaString>
+										</Attribute>
+										<Attribute name="Sound">
+											<kLoud-cSound>
+												<Element>
+													<Value>
+														<Attribute name="Name">
+															<cDeltaString>
+																<Element>
+																	<Value>vystraha_konec</Value>
+																</Element>
+															</cDeltaString>
+														</Attribute>
+													</Value>
+												</Element>
+											</kLoud-cSound>
+										</Attribute>
+										<Attribute name="ModifierChain">
+											<kLoud-cModifierChain>
+												<Element>
+													<Value>
+														<Attribute name="Name">
+															<cDeltaString>
+																<Element>
+																	<Value />
+																</Element>
+															</cDeltaString>
+														</Attribute>
+													</Value>
+												</Element>
+											</kLoud-cModifierChain>
+										</Attribute>
+										<Attribute name="ControllerName">
+											<cDeltaString>
+												<Element>
+													<Value>vystraha</Value>
+												</Element>
+											</cDeltaString>
+										</Attribute>
+										<Attribute name="TriggerType">
+											<kLoud-eTriggerType>
+												<Element>
+													<Value>ValueDecreasePast</Value>
+												</Element>
+											</kLoud-eTriggerType>
+										</Attribute>
+										<Attribute name="TriggerValue">
+											<sFloat32>
+												<Element>
+													<Value>0.5</Value>
+												</Element>
+											</sFloat32>
+										</Attribute>
+										<Attribute name="ValueIsChangingGateTime">
+											<sFloat32>
+												<Element>
+													<Value>0</Value>
+												</Element>
+											</sFloat32>
+										</Attribute>
+										<Attribute name="InstanceGroup">
+											<kLoud-cInstanceGroup>
+												<Element>
+													<Value>
+														<Attribute name="Name">
+															<cDeltaString>
+																<Element>
+																	<Value />
+																</Element>
+															</cDeltaString>
+														</Attribute>
+													</Value>
+												</Element>
+											</kLoud-cInstanceGroup>
+										</Attribute>
+									</Value>
+								</Element>
+							</kLoud-cTriggeredOneshot>
+						</Value>
+					</Element>
+				</__Indexed__kLoud-cTriggeredOneshot>
+			</Attribute>
+		</Value>
+	</Element>
+</cGenericAudioControl>

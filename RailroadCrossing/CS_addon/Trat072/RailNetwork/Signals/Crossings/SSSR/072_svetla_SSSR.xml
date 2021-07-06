@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="utf-8"?>
+<cNamedTextureSetBlueprint>
+	<Element>
+		<Value>
+			<Attribute name="Name">
+				<cDeltaString>
+					<Element>
+						<Value>072_svetla_SSSR</Value>
+					</Element>
+				</cDeltaString>
+			</Attribute>
+			<Attribute name="TextureEntry">
+				<__Indexed__cNamedTextureSetBlueprint-sTextureEntry>
+					<Element>
+						<Value>
+							<cNamedTextureSetBlueprint-sTextureEntry>
+								<Element>
+									<Value>
+										<Attribute name="TextureName">
+											<cDeltaString>
+												<Element>
+													<Value>0</Value>
+												</Element>
+											</cDeltaString>
+										</Attribute>
+										<Attribute name="TextureID">
+											<cDeltaString>
+												<Element>
+													<Value>RailNetwork\Signals\Crossings\SSSR\Textures\decal_primarynumber_0.dds</Value>
+												</Element>
+											</cDeltaString>
+										</Attribute>
+									</Value>
+								</Element>
+							</cNamedTextureSetBlueprint-sTextureEntry>
+							<cNamedTextureSetBlueprint-sTextureEntry>
+								<Element>
+									<Value>
+										<Attribute name="TextureName">
+											<cDeltaString>
+												<Element>
+													<Value>1</Value>
+												</Element>
+											</cDeltaString>
+										</Attribute>
+										<Attribute name="TextureID">
+											<cDeltaString>
+												<Element>
+													<Value>RailNetwork\Signals\Crossings\SSSR\Textures\decal_primarynumber_1.dds</Value>
+												</Element>
+											</cDeltaString>
+										</Attribute>
+									</Value>
+								</Element>
+							</cNamedTextureSetBlueprint-sTextureEntry>
+							<cNamedTextureSetBlueprint-sTextureEntry>
+								<Element>
+									<Value>
+										<Attribute name="TextureName">
+											<cDeltaString>
+												<Element>
+													<Value>2</Value>
+												</Element>
+											</cDeltaString>
+										</Attribute>
+										<Attribute name="TextureID">
+											<cDeltaString>
+												<Element>
+													<Value>RailNetwork\Signals\Crossings\SSSR\Textures\decal_primarynumber_2.dds</Value>
+												</Element>
+											</cDeltaString>
+										</Attribute>
+									</Value>
+								</Element>
+							</cNamedTextureSetBlueprint-sTextureEntry>
+							<cNamedTextureSetBlueprint-sTextureEntry>
+								<Element>
+									<Value>
+										<Attribute name="TextureName">
+											<cDeltaString>
+												<Element>
+													<Value>3</Value>
+												</Element>
+											</cDeltaString>
+										</Attribute>
+										<Attribute name="TextureID">
+											<cDeltaString>
+												<Element>
+													<Value>RailNetwork\Signals\Crossings\SSSR\Textures\decal_primarynumber_3.dds</Value>
+												</Element>
+											</cDeltaString>
+										</Attribute>
+									</Value>
+								</Element>
+							</cNamedTextureSetBlueprint-sTextureEntry>
+							<cNamedTextureSetBlueprint-sTextureEntry>
+								<Element>
+									<Value>
+										<Attribute name="TextureName">
+											<cDeltaString>
+												<Element>
+													<Value>4</Value>
+												</Element>
+											</cDeltaString>
+										</Attribute>
+										<Attribute name="TextureID">
+											<cDeltaString>
+												<Element>
+													<Value>RailNetwork\Signals\Crossings\SSSR\Textures\decal_primarynumber_4.dds</Value>
+												</Element>
+											</cDeltaString>
+										</Attribute>
+									</Value>
+								</Element>
+							</cNamedTextureSetBlueprint-sTextureEntry>
+							<cNamedTextureSetBlueprint-sTextureEntry>
+								<Element>
+									<Value>
+										<Attribute name="TextureName">
+											<cDeltaString>
+												<Element>
+													<Value>5</Value>
+												</Element>
+											</cDeltaString>
+										</Attribute>
+										<Attribute name="TextureID">
+											<cDeltaString>
+												<Element>
+													<Value>RailNetwork\Signals\Crossings\SSSR\Textures\decal_primarynumber_5.dds</Value>
+												</Element>
+											</cDeltaString>
+										</Attribute>
+									</Value>
+								</Element>
+							</cNamedTextureSetBlueprint-sTextureEntry>
+							<cNamedTextureSetBlueprint-sTextureEntry>
+								<Element>
+									<Value>
+										<Attribute name="TextureName">
+											<cDeltaString>
+												<Element>
+													<Value>6</Value>
+												</Element>
+											</cDeltaString>
+										</Attribute>
+										<Attribute name="TextureID">
+											<cDeltaString>
+												<Element>
+													<Value>RailNetwork\Signals\Crossings\SSSR\Textures\decal_primarynumber_6.dds</Value>
+												</Element>
+											</cDeltaString>
+										</Attribute>
+									</Value>
+								</Element>
+							</cNamedTextureSetBlueprint-sTextureEntry>
+							<cNamedTextureSetBlueprint-sTextureEntry>
+								<Element>
+									<Value>
+										<Attribute name="TextureName">
+											<cDeltaString>
+												<Element>
+													<Value>7</Value>
+												</Element>
+											</cDeltaString>
+										</Attribute>
+										<Attribute name="TextureID">
+											<cDeltaString>
+												<Element>
+													<Value>RailNetwork\Signals\Crossings\SSSR\Textures\decal_primarynumber_7.dds</Value>
+												</Element>
+											</cDeltaString>
+										</Attribute>
+									</Value>
+								</Element>
+							</cNamedTextureSetBlueprint-sTextureEntry>
+							<cNamedTextureSetBlueprint-sTextureEntry>
+								<Element>
+									<Value>
+										<Attribute name="TextureName">
+											<cDeltaString>
+												<Element>
+													<Value>8</Value>
+												</Element>
+											</cDeltaString>
+										</Attribute>
+										<Attribute name="TextureID">
+											<cDeltaString>
+												<Element>
+													<Value>RailNetwork\Signals\Crossings\SSSR\Textures\decal_primarynumber_8.dds</Value>
+												</Element>
+											</cDeltaString>
+										</Attribute>
+									</Value>
+								</Element>
+							</cNamedTextureSetBlueprint-sTextureEntry>
+							<cNamedTextureSetBlueprint-sTextureEntry>
+								<Element>
+									<Value>
+										<Attribute name="TextureName">
+											<cDeltaString>
+												<Element>
+													<Value>9</Value>
+												</Element>
+											</cDeltaString>
+										</Attribute>
+										<Attribute name="TextureID">
+											<cDeltaString>
+												<Element>
+													<Value>RailNetwork\Signals\Crossings\SSSR\Textures\decal_primarynumber_9.dds</Value>
+												</Element>
+											</cDeltaString>
+										</Attribute>
+									</Value>
+								</Element>
+							</cNamedTextureSetBlueprint-sTextureEntry>
+						</Value>
+					</Element>
+				</__Indexed__cNamedTextureSetBlueprint-sTextureEntry>
+			</Attribute>
+		</Value>
+	</Element>
+</cNamedTextureSetBlueprint>
