@@ -64,7 +64,7 @@ BSE = {
             self.pPipe = self.pPipe-(((self.pPipe/500)^2)*3*dTime)
         
         --overcharge timing reservoir gradual release
-            self.pOvercharge = math.max(self.pOvercharge-0.00333*dTime,0)
+            self.pOvercharge = math.max(self.pOvercharge-0.0333*dTime,0)
             Call(self.SOUND_PROXYNAME..":SetParameter", self.SOUND_LINEAR_OVERCH, math.sqrt(self.pOvercharge))
         
         --control pressure calculations
@@ -116,8 +116,8 @@ BSE = {
                 if self.YP then
                     if self.pOvercharge < self.pPipe then
                         self.pOvercharge = math.min(self.pOvercharge + dTime, self.pPipe)
-                    else
-                        self.pOvercharge = math.max(self.pOvercharge - dTime, self.pPipe)
+                    --else
+                        --self.pOvercharge = math.max(self.pOvercharge - dTime, self.pPipe)
                     end
                 end
             else
@@ -127,7 +127,7 @@ BSE = {
             end
 
         --distribution valve calculations
-            distValveTarget = math.max(math.min(((self.pOut+self.pOvercharge/11)-self.pPipe)*math.max(self.pMainRes-self.pPipe,1),1),-1)
+            distValveTarget = math.max(math.min(((self.pOut+(self.pOvercharge*self.pOut)/55)-self.pPipe)*math.max(self.pMainRes-self.pPipe,1),1),-1)
 
             if math.abs(self.distValve) < 0.01 and math.abs(distValveTarget - self.distValve) < 0.01 then
                 self.distValveHysteresis = math.min(self.distValveHysteresis + dTime*0.01, 0.25)
