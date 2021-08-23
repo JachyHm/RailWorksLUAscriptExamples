@@ -127,12 +127,13 @@ BSE = {
             end
 
         --distribution valve calculations
-            distValveTarget = math.max(math.min(((self.pOut+(self.pOvercharge*self.pOut)/55)-self.pPipe)*math.max(self.pMainRes-self.pPipe,1),1),-1)
+            local pPipeTarget = self.pOut*(1+self.pOvercharge/50)
+            distValveTarget = math.max(math.min((pPipeTarget-self.pPipe)*math.max(self.pMainRes-self.pPipe,1),1),-1)
 
             if math.abs(self.distValve) < 0.01 and math.abs(distValveTarget - self.distValve) < 0.01 then
                 self.distValveHysteresis = math.min(self.distValveHysteresis + dTime*0.01, 0.25)
-                if math.abs(self.pPipe-(self.pOut+self.pOvercharge/11)) < 0.01 and self.pPipeConChange <= 0 then
-                    self.pPipe = self.pOut+self.pOvercharge/11
+                if math.abs(self.pPipe-pPipeTarget) < 0.01 and self.pPipeConChange <= 0 then
+                    self.pPipe = pPipeTarget
                 end
             elseif math.abs(distValveTarget - self.distValve) > 0.01 then
                 self.distValveHysteresis = math.max(self.distValveHysteresis - dTime*math.sqrt(math.abs(distValveTarget-self.distValve))/10,0)
