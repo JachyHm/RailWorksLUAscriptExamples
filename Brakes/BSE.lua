@@ -7,7 +7,7 @@ BSE = {
         SOUND_APPLY = "BSE_release", --release hiss sound name [0~2.236]
         SOUND_EMERGENCY = "BSE_RB", --emergency apply sound name [0~3.162]
         SOUND_LINEAR_OVERCH = "BSE_prebiti", --overcharge timing reservoir gradual release sound name [0~3.162]
-        MAX_CYLINDER_PRESSURE = 3.8, --maximal cylinder pressure for emergency control
+        MAX_CYLINDER_PRESSURE = 3.8, --maximal cylinder pressure for emergency control [at]
 
     --public I/O variables
         --inputs
@@ -15,7 +15,7 @@ BSE = {
 
             emergencyOperation = false, --emergency operation of BSE - true if enabled
             pCylinder = 0, --brake cylinder pressure for emergency operation [at]
-            
+
             YO = false, --release valve (S, P, O)
             YB = false, --apply valve (S, P, Z, O, J)
             YS = false, --superovercharge valve (S)
@@ -41,13 +41,6 @@ BSE = {
         trainLenLast = -1,
 
         pPipeEndLast = 0,
-        
-        toInt = function(self, val)
-            if val then
-                return(1)
-            end
-            return(0)
-        end,
 
     Update = function(self, dTime)
         local trainLength = Call("GetConsistLength")
@@ -62,11 +55,11 @@ BSE = {
 
         --brake pipe leakage
             self.pPipe = self.pPipe-(((self.pPipe/500)^2)*3*dTime)
-        
+
         --overcharge timing reservoir gradual release
             self.pOvercharge = math.max(self.pOvercharge-0.0333*dTime,0)
             Call(self.SOUND_PROXYNAME..":SetParameter", self.SOUND_LINEAR_OVERCH, math.sqrt(self.pOvercharge))
-        
+
         --control pressure calculations
             local min5pRes = math.min(self.pMainRes, 5)
             if self.YB and self.pControl > 4.7 and self.pControl < min5pRes then
@@ -128,7 +121,7 @@ BSE = {
 
         --distribution valve calculations
             local pPipeTarget = self.pOut*(1+self.pOvercharge/50)
-            distValveTarget = math.max(math.min((pPipeTarget-self.pPipe)*math.max(self.pMainRes-self.pPipe,1),1),-1)
+            local distValveTarget = math.max(math.min((pPipeTarget-self.pPipe)*math.max(self.pMainRes-self.pPipe,1),1),-1)
 
             if math.abs(self.distValve) < 0.01 and math.abs(distValveTarget - self.distValve) < 0.01 then
                 self.distValveHysteresis = math.min(self.distValveHysteresis + dTime*0.01, 0.25)
@@ -138,7 +131,7 @@ BSE = {
             elseif math.abs(distValveTarget - self.distValve) > 0.01 then
                 self.distValveHysteresis = math.max(self.distValveHysteresis - dTime*math.sqrt(math.abs(distValveTarget-self.distValve))/10,0)
             end
-            
+
             if math.abs(self.distValve) < 0.01 and math.abs(distValveTarget) < 0.01 then
                 self.distValve = 0
             elseif self.distValve < distValveTarget-self.distValveHysteresis then
@@ -214,7 +207,7 @@ BSE = {
             end
             self.pPipeEndLast = self.pPipeEnd
 
-        Call(self.SOUND_PROXYNAME..":SetParameter", self.SOUND_RELEASE_VALVE, self:toInt(self.YO))
-        Call(self.SOUND_PROXYNAME..":SetParameter", self.SOUND_APPLY_VALVE, self:toInt(self.YB))
+        Call(self.SOUND_PROXYNAME..":SetParameter", self.SOUND_RELEASE_VALVE, (self.YO and 1) or 0)
+        Call(self.SOUND_PROXYNAME..":SetParameter", self.SOUND_APPLY_VALVE, (self.YB and 1) or 0)
     end,
 }

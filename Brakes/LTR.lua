@@ -9,6 +9,8 @@ DISTRIBUTOR = {
         OL2_TYPE = true, --true if using OL2 will do full release, false if another lowering pressure will reapply the brake force
         CONVERT_RATIO = 2.53, --convert ratio - SHOULD BE LEFT 2.53 - pressure drop of 150 kPa will apply 380 kPa into brake cyllinders [at]
         MAX_CYLINDER_PRESSURE = 3.8, --max brake cylinders pressure [at]
+        HAS_LTV = false, --true if loco has LTV high pressure mode
+        LTV_HIGH_PRESSURE = 6.5, --cylinder pressure when LTV high pressure mode active [at]
 
     --private variables
         targetBrakeControl = 0, --output brake percentage before smoothing
@@ -22,9 +24,13 @@ DISTRIBUTOR = {
             OL2 = false, --loco brake release
             bailOffRelay = false, --loco brake release from cooperation with another type of brake
 
+            highPressure = false, --LTV high pressure active
+
         --outputs
             pLocoCylinder = 0, --brake cylinder pressure to display on gauge [at]
             outputBrakeControl = 0, --output brake percentage smoothed
+
+        pMainRes = 0, --INPUT/OUTPUT! - main loco reservoir pressure [at]
 
     LTR = {
         pAux = 0, --auxiliary pressure of loco distributor [at]
@@ -35,6 +41,7 @@ DISTRIBUTOR = {
 
         OL2 = false, --loco brake release
         bailOffRelay = false, --loco brake release from cooperation with another type of brake
+        highPressure = false, --LTV high pressure active
     },
 
     firstCV = {
@@ -54,13 +61,30 @@ DISTRIBUTOR = {
     },
 
     --private
-    _DoDistributorUpdate = function(self, dTime, dist, pPipe)
+    _DoDistributorUpdate = function(self, dTime, dist, pPipe, pMainRes)
+        dTime = dTime or 0
+        pPipe = pPipe or 0
+        pMainRes = pMainRes or 0
+
         --pressure drops due to leakage
             dist.pAux = dist.pAux-(((dist.pAux/500)^2)*5*dTime)
             dist.pControl = dist.pControl-(((dist.pControl/200)^2)*dTime)
 
+            if dist.pAux < 0 then
+                dist.pAux = 0
+            end
+
+            if dist.pControl < 0 then
+                dist.pControl = 0
+            end
+
         if dist.pAux < pPipe then --filling aux reservoir
             dist.pAux = dist.pAux+math.sqrt(math.abs(pPipe - dist.pAux))/100*15*dTime
+        end
+
+        if dist.pAux < (pMainRes or 0) then --filling aux reservoir from main res when loco dist with LTV
+            dist.pAux = dist.pAux+math.sqrt(math.abs(pMainRes - dist.pAux))/100*15*dTime
+            self.pMainRes = math.max(self.pMainRes-math.sqrt(math.abs(pMainRes - dist.pAux))/1000*15*dTime, 0)
         end
 
         --control reservoir pressure handling
@@ -80,10 +104,13 @@ DISTRIBUTOR = {
             end
 
         --three-way valve control values
-            local targetDistOut = math.min(math.max(dist.pControl-pPipe,0)*self.CONVERT_RATIO,self.MAX_CYLINDER_PRESSURE)
-            local dOutputPressure = math.max(math.abs(dist.pControl-pPipe),1)
+            local ltvMaxPressure = (dist.highPressure and self.LTV_HIGH_PRESSURE) or self.MAX_CYLINDER_PRESSURE
+            local convertRatioWithLtv = (dist.highPressure and (self.CONVERT_RATIO/self.MAX_CYLINDER_PRESSURE)*self.LTV_HIGH_PRESSURE) or self.CONVERT_RATIO
+
+            local targetDistOut = math.min(math.max(dist.pControl-pPipe,0)*convertRatioWithLtv, ltvMaxPressure)
+            local dOutputPressure = math.max(math.abs(dist.pControl-pPipe), 1)
             if pPipe < 2.9 then
-                targetDistOut = self.MAX_CYLINDER_PRESSURE
+                targetDistOut = ltvMaxPressure
                 dOutputPressure = 1
             end
 
@@ -121,15 +148,16 @@ DISTRIBUTOR = {
 
     Update = function(self, dTime) --dTime - delta time from last call in seconds
         local trainLength = Call("GetConsistLength")
-        LTR.OL2 = self.OL2
-        LTR.bailOffRelay = self.bailOffRelay
-        LTR.brakeRegimeG = self.locoBrakeRegimeG
+        self.LTR.OL2 = self.OL2
+        self.LTR.bailOffRelay = self.bailOffRelay
+        self.LTR.brakeRegimeG = self.locoBrakeRegimeG
+        self.LTR.highPressure = self.highPressure
 
-        firstCV.brakeRegimeG = self.trainBrakeRegimeG
-        lastCV.brakeRegimeG = self.trainBrakeRegimeG
+        self.firstCV.brakeRegimeG = self.trainBrakeRegimeG
+        self.lastCV.brakeRegimeG = self.trainBrakeRegimeG
 
-        self:_DoDistributorUpdate(dTime, self.LTR, self.pPipe)
-        
+        self:_DoDistributorUpdate(dTime, self.LTR, self.pPipe, self.pMainRes)
+
         if math.abs(trainLength - self.LOCO_LENGTH) > 1 then --CARRIAGE DISTRIBUTORS
             self:_DoDistributorUpdate(dTime, self.firstCV, self.pPipe)
             self:_DoDistributorUpdate(dTime, self.lastCV, self.pPipeEnd)
@@ -138,12 +166,13 @@ DISTRIBUTOR = {
         self.pLocoCylinder = self.LTR.pCylinder
 
         --returned brake value calculations
-            max_tbc = -math.log(0.18*math.abs(Call("GetSpeed"))+20)+4
+            local max_tbc = -math.log(0.18*math.abs(Call("GetSpeed"))+20)+4
+            local max_cylinder_pressure = (self.HAS_LTV and self.LTV_HIGH_PRESSURE) or self.MAX_CYLINDER_PRESSURE
             if math.abs(trainLength - self.LOCO_LENGTH) < 1 then --single loco
-                self.targetBrakeControl = math.max(max_tbc*math.min(self.pLocoCylinder/self.MAX_CYLINDER_PRESSURE, 1), 0)
+                self.targetBrakeControl = math.max(max_tbc*math.min(self.pLocoCylinder/max_cylinder_pressure, 1), 0)
             else --more vehicles
-                self.targetBrakeControl = 
-                    math.max(max_tbc*math.min(self.pLocoCylinder/self.MAX_CYLINDER_PRESSURE, 1), 0)*(self.LOCO_LENGTH/trainLength)+
+                self.targetBrakeControl =
+                    math.max(max_tbc*math.min(self.pLocoCylinder/max_cylinder_pressure, 1), 0)*(self.LOCO_LENGTH/trainLength)+
                     math.max(max_tbc*(
                         math.min(self.lastCV.pCylinder/self.MAX_CYLINDER_PRESSURE, 1)+
                         math.min(self.firstCV.pCylinder/self.MAX_CYLINDER_PRESSURE, 1)
@@ -155,7 +184,7 @@ DISTRIBUTOR = {
             elseif self.outputBrakeControl > self.targetBrakeControl then
                 self.outputBrakeControl = self.outputBrakeControl - math.sqrt(math.abs(self.targetBrakeControl-self.outputBrakeControl))*0.375*dTime
             end
-        
+
         return self.outputBrakeControl
     end
 }
