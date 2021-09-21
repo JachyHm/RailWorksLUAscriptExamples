@@ -109,10 +109,6 @@ DISTRIBUTOR = {
 
             local targetDistOut = math.min(math.max(dist.pControl-pPipe,0)*convertRatioWithLtv, ltvMaxPressure)
             local dOutputPressure = math.max(math.abs(dist.pControl-pPipe), 1)
-            if pPipe < 2.9 then
-                targetDistOut = ltvMaxPressure
-                dOutputPressure = 1
-            end
 
         --three-way valve output values
             local dAux = math.min(math.sqrt(math.max(dist.pAux-dist.pOutput, 0)),1)
