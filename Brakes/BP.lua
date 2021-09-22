@@ -28,12 +28,16 @@ BP = {
             self.pCylinderTarget = _pCylinderTarget - self.P_SENSITIVITY
         end
 
-        if self.cylinderAnim > self.pCylinderTarget then
-            local dCylinder = (self.cylinderAnim - self.pCylinderTarget)*dTime*self.P_CYLINDER_RELEASE
-            self.cylinderAnim = self.cylinderAnim - dCylinder
+        if math.abs(self.cylinderAnim - self.pCylinderTarget) < dTime*math.min(self.P_CYLINDER_RELEASE, self.P_CYLINDER_ATTACK) then
+            self.cylinderAnim = self.pCylinderTarget
+        elseif self.cylinderAnim > self.pCylinderTarget then
+            local clampedCylinderTarget = math.min(math.max(_pCylinderTarget, 0), self.P_CYLINDER_MAX)
+            local dCylinder = math.max(self.cylinderAnim - math.max(self.pCylinderTarget, clampedCylinderTarget), 0)*dTime*self.P_CYLINDER_RELEASE
+            self.cylinderAnim = math.max(self.cylinderAnim - dCylinder, self.pCylinderTarget)
         elseif self.pCylinderTarget > self.cylinderAnim then
-            local dCylinder = (self.pCylinderTarget - self.cylinderAnim)*dTime*self.P_CYLINDER_ATTACK
-            self.cylinderAnim = self.cylinderAnim + dCylinder
+            local clampedCylinderTarget = math.min(math.max(_pCylinderTarget, 0), self.P_CYLINDER_MAX)
+            local dCylinder = math.max(math.min(self.pCylinderTarget, clampedCylinderTarget) - self.cylinderAnim, 0)*dTime*self.P_CYLINDER_ATTACK
+            self.cylinderAnim = math.min(self.cylinderAnim + dCylinder, self.pCylinderTarget)
             self.pMainRes = self.pMainRes - dCylinder*self.CYLINDER_VOLUME_RATIO
         end
 
