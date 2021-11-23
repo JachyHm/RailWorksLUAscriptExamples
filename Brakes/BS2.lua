@@ -17,6 +17,7 @@ BS2 = {
             pReference = 5,
             pPipe = 0,
             dPipe = 1,
+            cutoff = true,
     },
 
     cab2 = {
@@ -28,6 +29,7 @@ BS2 = {
             pReference = 5,
             pPipe = 0,
             dPipe = 1,
+            cutoff = true,
     },
 
     --public I/O variables
@@ -38,15 +40,17 @@ BS2 = {
             pPipe = 0, --brake pipe pressure [at]
             pPipeEnd = 0, --brake pipe pressure on end of train [at]
             increasedFlow = false, --increased flow signalisation
-        
+
         pMainRes = 0, --INPUT/OUTPUT! - pressuer of main reservoir [at]
 
     pPipeEndLast = 0,
     pPipeConChange = -1,
     trainLenLast = 0,
 
-    Update = function(self, dTime)
-        local trainLength = Call("GetConsistLength")
+    Update = function(self, dTime, trainLength)
+        if (not trainLength) then
+            trainLength = Call("GetConsistLength")
+        end
 
         if trainLength > self.trainLenLast then
             self.pPipeConChange = (self.trainLenLast^2/trainLength^2)*5
@@ -58,7 +62,7 @@ BS2 = {
 
         self:_Update(self.cab1, dTime, trainLength)
         self:_Update(self.cab2, dTime, trainLength)
-            
+
         --pressure calculation for end of train
             local pPipeEnd_target = math.max(self.pPipe - trainLength/1400, 0)
             if self.pPipe > self.pPipeEnd then
@@ -90,25 +94,27 @@ BS2 = {
     end,
 
     _Update = function(self, brake, dTime, trainLength)
+        brake.pPipe = self.pPipe;
+
         --control pressure leakage
             brake.pControl = brake.pControl-(((brake.pControl/500)^2)*3*dTime)
-        
+
         --overcharge timing reservoir gradual release
             brake.pReference = math.max(brake.pReference-0.00333*dTime,5)
 
         --target control pressure setting
             local superovercharge = false
-            local cutoff = true
-            local _pControl = brake.pReference - math.max(0.3 - (brake.handle - self.HANDLE_MIN)*(1.7/(self.HANDLE_MAX-self.HANDLE_MIN)), 0)
+            brake.cutoff = true
+            local _pControl = brake.pReference - math.max((brake.handle - self.HANDLE_J)*(2/(self.HANDLE_MAX-self.HANDLE_J)), 0)
             if brake.handle < self.HANDLE_S+(self.HANDLE_J-self.HANDLE_S)/2 then
                 superovercharge = true
-                cutoff = false
+                brake.cutoff = false
             elseif brake.handle < self.HANDLE_J+(self.HANDLE_N-self.HANDLE_J)/2 then
-                cutoff = false
+                brake.cutoff = false
             elseif brake.handle > self.HANDLE_N+(self.HANDLE_MIN-self.HANDLE_N)/2 and brake.handle <= self.HANDLE_MAX+(self.HANDLE_Z-self.HANDLE_MAX)/2 then --0.3 - 0.6
-                cutoff = false
+                brake.cutoff = false
             end
-        
+
         --control pressure calculations
             local dControl = math.sqrt(math.abs(math.min(_pControl, self.pMainRes)-brake.pControl))/3*dTime
             if superovercharge or brake.pPipe > brake.pReference then
@@ -135,7 +141,7 @@ BS2 = {
             end
 
         --dsitribution valve opening calculations
-            if not cutoff then
+            if not brake.cutoff then
                 if superovercharge or (brake.pPipe > brake.pReference and brake.pPipe > 5) then
                     brake.dPipe = 1
                 else
@@ -155,7 +161,7 @@ BS2 = {
 
         --brake pipe pressure calculations
             if self.emergencyValve then
-                if not cutoff and brake.dPipe > 0 then
+                if not brake.cutoff and brake.dPipe > 0 then
                     if self.pPipeConChange <= 0 then
                         if brake.pControl > brake.pPipe and brake.pPipe < self.pMainRes then
                             brake.pPipe = math.min(brake.pPipe + math.abs(brake.dPipe*dTime/(trainLength/500+0.1)*math.min(math.max((self.pMainRes-brake.pPipe)/5,0), 1)), brake.pControl)
@@ -165,14 +171,14 @@ BS2 = {
                     end
                 end
             else
-                if brake.pPipe > 0 then
-                    brake.pPipe = brake.pPipe - (math.sqrt(brake.pPipe)/(trainLength/500+0.1)) * dTime
+                if self.pPipe > 0 then
+                    self.pPipe = self.pPipe - (math.sqrt(self.pPipe)/(trainLength/500+0.1)) * dTime
                 else
-                    brake.pPipe = 0
+                    self.pPipe = 0
                 end
             end
 
-        if not cutoff then
+        if not brake.cutoff then
             self.pPipe = brake.pPipe
         end
     end,

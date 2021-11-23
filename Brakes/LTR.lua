@@ -142,8 +142,10 @@ DISTRIBUTOR = {
             end
     end,
 
-    Update = function(self, dTime) --dTime - delta time from last call in seconds
-        local trainLength = Call("GetConsistLength")
+    Update = function(self, dTime, trainLength) --dTime - delta time from last call in seconds
+        if (not trainLength) then
+            trainLength = Call("GetConsistLength")
+        end
         self.LTR.OL2 = self.OL2
         self.LTR.bailOffRelay = self.bailOffRelay
         self.LTR.brakeRegimeG = self.locoBrakeRegimeG
