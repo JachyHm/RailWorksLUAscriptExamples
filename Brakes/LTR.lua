@@ -124,7 +124,7 @@ DISTRIBUTOR = {
 
         --pressure relay
             local dAux = math.min(math.sqrt(math.max(dist.pAux-dist.pCylinder, 0)),1)
-            local dCylinderPressure = math.sqrt(math.abs(dist.pOutput-dist.pCylinder))
+            local dCylinderPressure = math.sqrt(math.abs(((dist.bailOffRelay and 0) or dist.pOutput)-dist.pCylinder))
             if dist.brakeRegimeG then
                 if dist.pOutput > dist.pCylinder and not dist.bailOffRelay then
                     dist.pCylinder = math.min(dist.pCylinder + 0.3*dTime*dCylinderPressure*dAux, dist.pOutput)
